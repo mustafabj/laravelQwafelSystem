@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('driver', function (Blueprint $table) {
-            if (!Schema::hasColumn('driver', 'driverName')) {
-                $table->string('driverName', 100)->after('driverId');
-            }
-
-            if (!Schema::hasColumn('driver', 'driverPhone')) {
-                $table->string('driverPhone', 50)->nullable()->after('driverName');
-            }
+        Schema::create('driver', function (Blueprint $table) {
+            $table->id('driverId');
+            $table->string('driverName', 100);
+            $table->string('driverPhone', 50)->nullable();
+            $table->string('driverEmail', 100)->nullable();
+            $table->string('licenseNumber', 100)->nullable();
+            $table->string('vehicleNumber', 100)->nullable();
+            $table->timestamps();
         });
     }
 
@@ -27,14 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('driver', function (Blueprint $table) {
-            if (Schema::hasColumn('driver', 'driverName')) {
-                $table->dropColumn('driverName');
-            }
-
-            if (Schema::hasColumn('driver', 'driverPhone')) {
-                $table->dropColumn('driverPhone');
-            }
-        });
+        Schema::dropIfExists('driver');
     }
 };
