@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class Ticket extends Model
 {
@@ -62,5 +63,21 @@ class Ticket extends Model
     public function office()
     {
         return $this->belongsTo(Office::class, 'officeId', 'officeId');
+    }
+
+    public static function getLastTickets()
+    {
+        $user = Auth::user();
+        $query = self::with(['customer', 'user', 'office'])->orderByDesc('ticketDate')->limit(100);
+
+        if ($user->role !== 'admin') {
+            $query->where(function ($sub) use ($user) {
+                $sub->where('officeId', $user->officeId)
+                    ->orWhere('userId', $user->id);
+            });
+        }
+
+        return $query->get();
+
     }
 }

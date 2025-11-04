@@ -9,8 +9,7 @@
         {{-- <link rel="icon" href="{{ Vite::asset('resources/images/alia-logo.png') }}">
         <link rel="apple-touch-icon" href="{{ Vite::asset('resources/images/alia-logo.png') }}"> --}}
         <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&display=swap" rel="stylesheet">
-    
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @vite(['resources/css/app.css'])
     </head>
     
 
@@ -58,5 +57,8 @@
 
     <!-- Scripts -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    @routes
+    @vite(['resources/js/app.js'])
+
 </body>
 </html>

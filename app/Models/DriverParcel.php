@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class DriverParcel extends Model
 {
@@ -64,4 +65,19 @@ class DriverParcel extends Model
         return $this->belongsTo(Driver::class, 'driverId', 'driverId');
     }
 
+    public static function getLastDriverParcels()
+    {
+        $user = Auth::user();
+        $query = self::with(['user', 'office']);
+
+        if ($user->role !== 'admin') {
+            $query->where(function ($sub) use ($user) {
+                $sub->where('userId', $user->id)
+                    ->orWhere('sendTo', $user->officeId)
+                    ->orWhere('officeId', $user->officeId);
+            });
+        }
+
+        return $query->latest('parcelDate')->limit(100)->get();
+    }
 }

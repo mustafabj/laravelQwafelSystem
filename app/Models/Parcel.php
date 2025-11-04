@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class Parcel extends Model
 {
@@ -71,5 +72,30 @@ class Parcel extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'userId', 'id');
+    }
+
+    public static function getLastParcels()
+    {
+        $user = Auth::user();
+        $query = self::with(['customer', 'user', 'originOffice', 'destinationOffice'])->selectRaw("
+        parcels.*,
+        CASE
+            WHEN parcels.officeId = ? THEN 'صادر'
+            ELSE 'وارد'
+        END AS status_label", [$user->officeId])->orderByDesc('parcelDate')->limit(100);
+
+        if ($user->role !== 'admin') {
+            $query->where(function ($sub) use ($user) {
+                $sub->where('officeReId', $user->officeId)
+                    ->orWhere('officeId', $user->officeId)
+                    ->orWhere('userId', $user->id);
+
+                if ($user->officeId == 3) {
+                    $sub->orWhere('officeReId', 6);
+                }
+            });
+        }
+
+        return $query->get();
     }
 }
