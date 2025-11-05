@@ -54,7 +54,7 @@
             </div>
 
             <div class="historyT">
-                <table class="myTable">
+                <table class="myTable" id="parcelsTable">
                     <thead>
                         <tr>
                             <td>رقم الارسالية</td>
@@ -72,7 +72,7 @@
                     </thead>
                     <tbody id="indexParecelsBody">
                         @foreach ($parcels as $parcel)
-                            <tr onclick="getParelsById({{ $parcel->id }})"
+                            <tr data-parcel-id="{{$parcel->parcelId}}"
                                 class="{{ $parcel->accept === 'no' ? 'notAccept' : '' }}">
                                 <td class="name">{{ $parcel->parcelNumber }}</td>
                                 <td class="name">{{ $parcel->customer?->FName }} {{ $parcel->customer?->LName }}</td>

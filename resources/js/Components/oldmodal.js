@@ -1,3 +1,4 @@
+
 let modal = document.getElementById("myModal");
 let bodyForm = document.getElementById("bodyForm");
 let body = document.getElementsByTagName("body")[0];
@@ -518,6 +519,8 @@ function getTicketById(rowId) {
 
 // /getParelsById
 function getParelsById(rowId) {
+  App.utils.showToast("Loader is init");
+
   $.ajax({
     url: "fetchParelsById.php",
     type: "post",

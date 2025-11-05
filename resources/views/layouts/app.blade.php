@@ -13,7 +13,7 @@
     </head>
     
 
-<body>
+<body data-route="{{ Route::currentRouteName() }}">
     <!-- Start Header -->
     <div class="main-header noPrint">
         <div class="container">
@@ -58,7 +58,7 @@
     <!-- Scripts -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     @routes
-    @vite(['resources/js/app.js'])
+    @vite(['resources/js/loader.js'])
 
 </body>
 </html>
