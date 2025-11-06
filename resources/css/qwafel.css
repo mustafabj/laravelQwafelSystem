@@ -100,7 +100,7 @@ input[type="text"]:focus {
 
 /* Back Button */
 /* Start Model  */
-.modal {
+/* .modal {
   display: none;
   position: fixed;
   z-index: 1;
@@ -128,9 +128,9 @@ input[type="text"]:focus {
 }
 .modal .headModel button {
   cursor: pointer;
-}
+} */
 /* Modal Content */
-.modal-content {
+/* .modal-content {
   position: relative;
   background-color: #fefefe;
   margin: auto;
@@ -153,7 +153,7 @@ input[type="text"]:focus {
     top: 0;
     opacity: 1;
   }
-}
+} */
 /* End Model  */
 /* End Global value  */
 /* Small */

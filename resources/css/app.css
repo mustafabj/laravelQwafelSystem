@@ -1,3 +1,4 @@
+@import 'bootstrap/dist/css/bootstrap.min.css';
 @import './all.min.css';
 @import './framework.css';
 @import './master.css';

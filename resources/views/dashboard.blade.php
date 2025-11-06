@@ -72,6 +72,7 @@
                     </thead>
                     <tbody id="indexParecelsBody">
                         @foreach ($parcels as $parcel)
+
                             <tr data-parcel-id="{{$parcel->parcelId}}"
                                 class="{{ $parcel->accept === 'no' ? 'notAccept' : '' }}">
                                 <td class="name">{{ $parcel->parcelNumber }}</td>
@@ -83,8 +84,8 @@
                                 <td>{{ $parcel->originOffice?->officeName }}</td>
                                 <td>{{ $parcel->destinationOffice?->officeName }}</td>
                                 <td>{{ $parcel->parcelDate }}</td>
-                                <td>{{ $parcel->accept === 'no' ? 'جديد' : 'مقبول' }}</td>
                                 <td>{{ $parcel->status_label }}</td>
+                                <td>{{ $parcel->accept === 'no' ? 'جديد' : 'مقبول' }}</td>
                             </tr>
                         @endforeach
                     </tbody>

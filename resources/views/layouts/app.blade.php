@@ -44,21 +44,27 @@
     <!-- Main Content -->
     @yield('content')
 
-    <!-- Footer Modal -->
-    <div class="modal iteams" id="myModal">
-        <div class="responsive-table modal-content" id="tbody">
-            <div class="head">
-                <h1 id="modelTitle"></h1>
-                <span id="close">اغلاق</span>
+    <!-- Global Modal -->
+    <div class="modal fade" id="appModal" tabindex="-1" aria-labelledby="appModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title" id="appModalLabel">تفاصيل الارسالية</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div id="bodyForm"></div>
+            <div class="modal-body" id="appModalBody">
+            <div class="text-center py-5 text-muted">Loading...</div>
+            </div>
+            <div class="modal-footer" id="appModalFooter">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+            </div>
+        </div>
         </div>
     </div>
-
+    
     <!-- Scripts -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     @routes
     @vite(['resources/js/loader.js'])
-
 </body>
 </html>

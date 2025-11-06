@@ -19,6 +19,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('/fetch-last-parcels', [ParcelController::class, 'fetchLastParcels'])->name('fetch-last-parcels');
     Route::post('/fetch-last-tickets', [TicketController::class, 'fetchLastTickets'])->name('fetch-last-tickets');
+
+    Route::post('/Parcels/show', [ParcelController::class, 'show'])
+    ->name('parcel.show')
+    ->middleware('auth');
 });
 
 require __DIR__.'/auth.php';

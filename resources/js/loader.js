@@ -11,7 +11,7 @@ App.config.loader = {
      * Define all your global components that should load everywhere.
      */
     components: [
-        'Components/modal.js',
+        // 'Components/modal.js',
     ],
 
     /**
@@ -38,7 +38,7 @@ App.config.loader = {
 
         for (const file of filesToLoad) {
             try {
-                await import(`./${file}`);
+                await import(/* @vite-ignore */ `./${file}`);
                 if (App.config.debug) console.log(`[Loader] Loaded: ${file}`);
             } catch (error) {
                 console.warn(`[Loader] Failed to load: ${file}`, error);

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Parcel;
+use Illuminate\Support\Facades\Auth;
 
 class ParcelController extends Controller
 {
@@ -34,9 +35,25 @@ class ParcelController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $request)
     {
-        //
+        $id = $request->input('id');
+
+        $parcel = Parcel::with([
+            'customer:customerId,FName,LName,customerPassport',
+            'originOffice:officeId,officeName,officeImage',
+            'destinationOffice:officeId,officeName',
+            'details',
+        ])->findOrFail($id);
+
+        $user = Auth::user();
+
+        return response()->json([
+            'html' => view('parcels.show', [
+                'parcel' => $parcel,
+                'user'   => $user,
+            ])->render(),
+        ]);
     }
 
     /**

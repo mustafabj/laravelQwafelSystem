@@ -3,6 +3,8 @@ import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 import Toastify from 'toastify-js';
 import "toastify-js/src/toastify.css";
+import 'bootstrap/dist/js/bootstrap.bundle.min.js';
+
 window.Pusher = Pusher;
 window.Alpine = Alpine;
 
@@ -17,7 +19,7 @@ window.App = {
 
     init() {
         // Attach global event listeners that should work on every page. 
-        this.bindCommonEvents();
+    this.bindCommonEvents();
         this.initAlpine();
         this.initEcho();
 
