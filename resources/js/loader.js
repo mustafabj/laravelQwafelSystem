@@ -4,6 +4,7 @@
  * Dynamically imports all page scripts based on the Laravel route name.
  * Loads global components on every page automatically.
  */
+// import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import './app.js'; 
 
 App.config.loader = {
@@ -11,7 +12,6 @@ App.config.loader = {
      * Define all your global components that should load everywhere.
      */
     components: [
-        // 'Components/modal.js',
     ],
 
     /**

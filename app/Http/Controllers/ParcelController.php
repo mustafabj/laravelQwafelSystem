@@ -39,19 +39,14 @@ class ParcelController extends Controller
     {
         $id = $request->input('id');
 
-        $parcel = Parcel::with([
-            'customer:customerId,FName,LName,customerPassport',
-            'originOffice:officeId,officeName,officeImage',
-            'destinationOffice:officeId,officeName',
-            'details',
-        ])->findOrFail($id);
+        $parcel = Parcel::withFullRelations()->findOrFail($id);
 
         $user = Auth::user();
 
         return response()->json([
-            'html' => view('parcels.show', [
+            'html' => view('Parcels.show', [
                 'parcel' => $parcel,
-                'user'   => $user,
+                'user' => $user,
             ])->render(),
         ]);
     }
@@ -84,5 +79,11 @@ class ParcelController extends Controller
     {
         $parcels = Parcel::orderBy('parcelId', 'desc')->limit(100)->get();
         return response()->json($parcels);
+    }
+    
+    public function print($id)
+    {
+        $parcel = Parcel::findOrFail($id);
+        return view('Parcels.print', compact('parcel'));
     }
 }

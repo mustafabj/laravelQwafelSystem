@@ -14,8 +14,8 @@
                     flex-direction: column;
                     gap: 10px;">
                     <a href="order.php" class="parcelsButton"> الارساليات والسفريات</a>
-                    <a href="drivers.php" class="parcelsButton" style="background-color: dimgray;">اخر ارساليات السائقين
-                    </a>
+                    {{-- <a href="drivers.php" class="parcelsButton" style="background-color: dimgray;">اخر ارساليات السائقين
+                    </a> --}}
                 </div>
             </div>
         </div>
@@ -46,93 +46,119 @@
     <!-- Start history -->
     <div class="history noPrint">
         <div class="container">
-            <div class="historyTabs">
-                <button class="historyTab historyTabActive" data-cont=".historyT">
-                    الارساليات
-                </button>
-                <button class="historyTab" data-cont=".historyS">السفريات</button>
-            </div>
+            <ul class="nav nav-tabs historyTabs" id="parcelTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active historyTab" id="historyT-tab" data-bs-toggle="tab"
+                        data-bs-target="#historyT" type="button" role="tab" aria-controls="historyT"
+                        aria-selected="true">
+                        الارساليات
+                    </button>
+                </li>
+                {{-- <li class="nav-item" role="presentation">
+                    <button class="nav-link historyTab" id="historyTrip-tab" data-bs-toggle="tab"
+                        data-bs-target="#historyTrip" type="button" role="tab" aria-controls="historyTrip"
+                        aria-selected="false">
+                        ارساليات السائقين
+                    </button>
+                </li> --}}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link historyTab" id="historyS-tab" data-bs-toggle="tab" data-bs-target="#historyS"
+                        type="button" role="tab" aria-controls="historyS" aria-selected="false">
+                        السفريات
+                    </button>
+                </li>
 
-            <div class="historyT">
-                <table class="myTable" id="parcelsTable">
-                    <thead>
-                        <tr>
-                            <td>رقم الارسالية</td>
-                            <td>اسم العميل</td>
-                            <td>رقم العميل</td>
-                            <td>اسم المرسل اليه</td>
-                            <td>رقم المرسل اليه</td>
-                            <td>اسم الموظف</td>
-                            <td>المكتب</td>
-                            <td>المكتب المرسل اليه</td>
-                            <td>تاريخ الوصل</td>
-                            <td>صادر / وارد</td>
-                            <td>الحالة</td>
-                        </tr>
-                    </thead>
-                    <tbody id="indexParecelsBody">
-                        @foreach ($parcels as $parcel)
 
-                            <tr data-parcel-id="{{$parcel->parcelId}}"
-                                class="{{ $parcel->accept === 'no' ? 'notAccept' : '' }}">
-                                <td class="name">{{ $parcel->parcelNumber }}</td>
-                                <td class="name">{{ $parcel->customer?->FName }} {{ $parcel->customer?->LName }}</td>
-                                <td>{{ $parcel->custNumber }}</td>
-                                <td>{{ $parcel->recipientName }}</td>
-                                <td>{{ $parcel->recipientNumber }}</td>
-                                <td>{{ $parcel->user?->name }}</td>
-                                <td>{{ $parcel->originOffice?->officeName }}</td>
-                                <td>{{ $parcel->destinationOffice?->officeName }}</td>
-                                <td>{{ $parcel->parcelDate }}</td>
-                                <td>{{ $parcel->status_label }}</td>
-                                <td>{{ $parcel->accept === 'no' ? 'جديد' : 'مقبول' }}</td>
+            </ul>
+
+            <div class="tab-content">
+                <div class="tab-pane fade show active historyT" id="historyT" role="tabpanel"
+                    aria-labelledby="historyT-tab">
+                    <table class="myTable" id="parcelsTable">
+                        <thead>
+                            <tr>
+                                <td>رقم الارسالية</td>
+                                <td>اسم العميل</td>
+                                <td>رقم العميل</td>
+                                <td>اسم المرسل اليه</td>
+                                <td>رقم المرسل اليه</td>
+                                <td>اسم الموظف</td>
+                                <td>المكتب</td>
+                                <td>المكتب المرسل اليه</td>
+                                <td>تاريخ الوصل</td>
+                                <td>صادر / وارد</td>
+                                <td>الحالة</td>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-            <div class="historyS" style="display: none">
-                <table class="myTable" id="indexTicketTable">
-                    <thead>
-                        <tr>
-                            <td>رقم التذكرة</td>
-                            <td>اسم العميل</td>
-                            <td>رقم العميل</td>
-                            <td>اسم الموظف</td>
-                            <td>اسم المكتب</td>
-                            <td>السفر من</td>
-                            <td>السفر الى</td>
-                            <td>تاريخ التذكرة</td>
-                            <td>الحالة</td>
-                        </tr>
-                    </thead>
-                    <tbody id="indexTicketBody">
-                        @foreach ($tickets as $ticket)
-                            <tr onclick="getTicketById({{ $ticket->id }})"
-                                class="{{ $ticket->accept === 'no' ? 'notAccept' : '' }}" data-id="{{ $ticket->id }}">
-                                <td class="name">{{ $ticket->tecketNumber }}</td>
-                                <td class="name">{{ $ticket->customer?->FName }} {{ $ticket->customer?->LName }}</td>
-                                <td>{{ $ticket->custNumber }}</td>
-                                <td>{{ $ticket->user?->name }}</td>
-                                <td>{{ $ticket->office?->officeName }}</td>
-                                <td>
-                                    @php
-                                        $address = $ticket->address ?? null;
-                                    @endphp
-
-                                    @if ($address && $address->city)
-                                        {{ $address->city }} / {{ $address->area }}
-                                    @else
-                                        لا يوجد عنوان
-                                    @endif
-                                </td>
-                                <td>{{ $ticket->destination }}</td>
-                                <td>{{ $ticket->ticketDate }}</td>
-                                <td>{{ $ticket->accept === 'no' ? 'جديد' : 'مقبول' }}</td>
+                        </thead>
+                        <tbody id="indexParecelsBody">
+                            @foreach ($parcels as $parcel)
+                                <tr data-parcel-id="{{ $parcel->parcelId }}"
+                                    class="{{ $parcel->accept === 'no' ? 'notAccept' : '' }}">
+                                    <td class="name">{{ $parcel->parcelNumber }}</td>
+                                    <td class="name">{{ $parcel->customer?->FName }} {{ $parcel->customer?->LName }}</td>
+                                    <td>{{ $parcel->custNumber }}</td>
+                                    <td>{{ $parcel->recipientName }}</td>
+                                    <td>{{ $parcel->recipientNumber }}</td>
+                                    <td>{{ $parcel->user?->name }}</td>
+                                    <td>{{ $parcel->originOffice?->officeName }}</td>
+                                    <td>{{ $parcel->destinationOffice?->officeName }}</td>
+                                    <td>{{ $parcel->parcelDate }}</td>
+                                    <td>{{ $parcel->status_label }}</td>
+                                    <td>{{ $parcel->accept === 'no' ? 'جديد' : 'مقبول' }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <div class="tab-pane fade historyS" id="historyS" role="tabpanel" aria-labelledby="historyS-tab">
+                    <table class="myTable" id="indexTicketTable">
+                        <thead>
+                            <tr>
+                                <td>رقم التذكرة</td>
+                                <td>اسم العميل</td>
+                                <td>رقم العميل</td>
+                                <td>اسم الموظف</td>
+                                <td>اسم المكتب</td>
+                                <td>السفر من</td>
+                                <td>السفر الى</td>
+                                <td>تاريخ التذكرة</td>
+                                <td>الحالة</td>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody id="indexTicketBody">
+                            @foreach ($tickets as $ticket)
+                                <tr data-ticket-id="{{ $ticket->ticketId }}"
+                                    class="{{ $ticket->accept === 'no' ? 'notAccept' : '' }}"
+                                    data-id="{{ $ticket->id }}">
+                                    <td class="name">{{ $ticket->tecketNumber }}</td>
+                                    <td class="name">{{ $ticket->customer?->FName }} {{ $ticket->customer?->LName }}
+                                    </td>
+                                    <td>{{ $ticket->custNumber }}</td>
+                                    <td>{{ $ticket->user?->name }}</td>
+                                    <td>{{ $ticket->office?->officeName }}</td>
+                                    <td>
+                                        @php
+                                            $address = $ticket->address ?? null;
+                                        @endphp
+                                        @if ($address && $address->city)
+                                            {{ $address->city }} / {{ $address->area }}
+                                        @else
+                                            لا يوجد عنوان
+                                        @endif
+                                    </td>
+                                    <td>{{ $ticket->destination }}</td>
+                                    <td>{{ $ticket->ticketDate }}</td>
+                                    <td>{{ $ticket->accept === 'no' ? 'جديد' : 'مقبول' }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <div class="tab-pane fade" id="historyTrip" role="tabpanel" aria-labelledby="historyTrip-tab">
+                    <h5>قائمة السفريات</h5>
+                    <!-- Content for third tab -->
+                </div>
+
             </div>
         </div>
     </div>

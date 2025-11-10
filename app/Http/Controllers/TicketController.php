@@ -34,10 +34,39 @@ class TicketController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Request $request)
     {
-        //
+        $id = $request->input('id');
+
+        $ticket = Ticket::withFullRelations()->findOrFail($id);
+    
+        $currencyMap = [
+            'JD' => 'دينار',
+            'USD' => 'دولار أمريكي',
+            'IQD' => 'دينار عراقي',
+            'SYP' => 'ليرة سورية',
+            'SAR' => 'ريال سعودي',
+        ];
+    
+        $ticket->currency_name = $currencyMap[$ticket->currency] ?? $ticket->currency;
+        $ticket->paid_text = $ticket->paid === 'paid' ? 'مدفوع' : 'غير مدفوع';
+        $ticket->unpaid_amount = $ticket->paid !== 'paid'
+            ? ($ticket->cost - $ticket->costRest)
+            : 0;
+    
+        if ($ticket->travelTime) {
+            $time = \Carbon\Carbon::parse($ticket->travelTime);
+            $period = $time->format('A') === 'AM' ? 'صباحًا' : 'مساءً';
+            $ticket->formatted_time = $time->format('h:i') . ' ' . $period;
+        } else {
+            $ticket->formatted_time = '';
+        }
+    
+        return response()->json([
+            'html' => view('Tickets.show', compact('ticket'))->render(),
+        ]);
     }
+    
 
     /**
      * Show the form for editing the specified resource.

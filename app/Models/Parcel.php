@@ -98,4 +98,13 @@ class Parcel extends Model
 
         return $query->get();
     }
+    public function scopeWithFullRelations($query)
+    {
+        return $query->with([
+            'customer:customerId,FName,LName,customerPassport',
+            'originOffice:officeId,officeName,officeImage',
+            'destinationOffice:officeId,officeName',
+            'details',
+        ]);
+    }
 }

@@ -1,4 +1,4 @@
-<div class="formS paks tab print active" id="parcel">
+<div class="formS paks tab print active invoicePrint" id="parcel">
     <div class="container">
 
         {{-- Company Details --}}
@@ -9,15 +9,16 @@
                          alt="{{ $parcel->office->officeName }}" />
                 @endif
             </div>
+            @include('components.details_title')
         </div>
 
         {{-- Print Buttons --}}
         <div class="printBtns">
             <div>
-                <div class="printBtn printInlineFlex" onclick="pagePrint(event)">
+                <a href="{{ route('parcel.print', $parcel->parcelId) }}" target="_blank" class="printBtn printInlineFlex">
                     <img src="{{ asset('image/printing.png') }}" alt="printer" />
                     طباعة
-                </div>
+                </a>
 
                 <div class="noPrint">
                     <label class="toggle-container">

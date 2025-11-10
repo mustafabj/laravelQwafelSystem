@@ -80,4 +80,12 @@ class Ticket extends Model
         return $query->get();
 
     }
+    public function scopeWithFullRelations($query)
+    {
+        return $query->with([
+            'customer:customerId,FName,LName,customerPassport',
+            'address:addressId,city,area,street,buildingNumber,info',
+        ]);
+    }
+
 }

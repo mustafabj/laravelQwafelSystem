@@ -17,12 +17,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    // Parcels
     Route::post('/fetch-last-parcels', [ParcelController::class, 'fetchLastParcels'])->name('fetch-last-parcels');
-    Route::post('/fetch-last-tickets', [TicketController::class, 'fetchLastTickets'])->name('fetch-last-tickets');
-
     Route::post('/Parcels/show', [ParcelController::class, 'show'])
-    ->name('parcel.show')
-    ->middleware('auth');
+    ->name('parcel.show');
+    Route::get('/print-parcel/{id}', [ParcelController::class, 'print'])->name('parcel.print');
+    // Ticktes
+    Route::post('/fetch-last-tickets', [TicketController::class, 'fetchLastTickets'])->name('fetch-last-tickets');
+    Route::post('/Tickets/show', [TicketController::class, 'show'])
+    ->name('ticket.show');
 });
 
 require __DIR__.'/auth.php';
