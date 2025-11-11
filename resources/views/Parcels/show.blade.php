@@ -9,7 +9,7 @@
                          alt="{{ $parcel->office->officeName }}" />
                 @endif
             </div>
-            @include('components.details_title')
+            @include('components.details_title')    
         </div>
 
         {{-- Print Buttons --}}

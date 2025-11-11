@@ -1,79 +1,127 @@
 @extends('layouts.app')
 @section('content')
+    <div class="container mt-3">
+        <!-- Statistics Cards -->
+        <div class="row g-3 mb-4">
+
+            <!-- Total Parcels -->
+            <div class="col-12 col-md-3">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body text-center">
+                        <div class="d-flex justify-content-center align-items-center mb-2">
+                            <i class="fas fa-box text-primary fa-lg me-2"></i>
+                            <h6 class="mb-0 fw-bold">عدد الإرساليات</h6>
+                        </div>
+                        <h4 class="fw-bold text-dark mb-0">{{ $totalParcels ?? 0 }}</h4>
+                        <small class="text-muted">منذ بداية الشهر</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Tickets -->
+            <div class="col-12 col-md-3">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body text-center">
+                        <div class="d-flex justify-content-center align-items-center mb-2">
+                            <i class="fas fa-bus text-success fa-lg me-2"></i>
+                            <h6 class="mb-0 fw-bold">عدد السفريات</h6>
+                        </div>
+                        <h4 class="fw-bold text-dark mb-0">{{ $totalTickets ?? 0 }}</h4>
+                        <small class="text-muted">خلال هذا الشهر</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Accepted -->
+            <div class="col-12 col-md-3">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body text-center">
+                        <div class="d-flex justify-content-center align-items-center mb-2">
+                            <i class="fas fa-check-circle text-success fa-lg me-2"></i>
+                            <h6 class="mb-0 fw-bold">المقبولة</h6>
+                        </div>
+                        <h4 class="fw-bold text-success mb-0">{{ $acceptedCount ?? 0 }}</h4>
+                        <small class="text-muted">طلبات مكتملة</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending -->
+            <div class="col-12 col-md-3">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body text-center">
+                        <div class="d-flex justify-content-center align-items-center mb-2">
+                            <i class="fas fa-hourglass-half text-warning fa-lg me-2"></i>
+                            <h6 class="mb-0 fw-bold">الجديدة</h6>
+                        </div>
+                        <h4 class="fw-bold text-warning mb-0">{{ $pendingCount ?? 0 }}</h4>
+                        <small class="text-muted">بانتظار المعالجة</small>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <ul class="nav nav-tabs historyTabs" id="parcelTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active historyTab" id="historyT-tab" data-bs-toggle="tab"
+                    data-bs-target="#historyT" type="button" role="tab" aria-controls="historyT"
+                    aria-selected="true">
+                    الارساليات
+                </button>
+            </li>
+            {{-- <li class="nav-item" role="presentation">
+                <button class="nav-link historyTab" id="historyTrip-tab" data-bs-toggle="tab"
+                    data-bs-target="#historyTrip" type="button" role="tab" aria-controls="historyTrip"
+                    aria-selected="false">
+                    ارساليات السائقين
+                </button>
+            </li> --}}
+            <li class="nav-item" role="presentation">
+                <button class="nav-link historyTab" id="historyS-tab" data-bs-toggle="tab" data-bs-target="#historyS"
+                    type="button" role="tab" aria-controls="historyS" aria-selected="false">
+                    السفريات
+                </button>
+            </li>
+
+
+        </ul>
+    </div>
     <!-- Start Search -->
     <div class="scroll-to-top  noPrint">
         <span class="up"><img src="image/top.png" alt="top" /></span>
     </div>
-    <div class="search noPrint">
-        <div class="container">
-            <div class="titleHome">
-                <h1>اخر الارساليات والسفريات</h1>
-                <div
-                    style="
-                    display: flex;
-                    flex-direction: column;
-                    gap: 10px;">
-                    <a href="order.php" class="parcelsButton"> الارساليات والسفريات</a>
-                    {{-- <a href="drivers.php" class="parcelsButton" style="background-color: dimgray;">اخر ارساليات السائقين
-                    </a> --}}
-                </div>
-            </div>
-        </div>
-        <div class="container">
-            <form action="">
-                <img src="image/search.png" alt="search" />
-                <input onkeyup="searchh()" type="text" id="search" placeholder="ابحث هنا" />
-            </form>
-            <label for="filterAll">
-                <input type="radio" class="filterHome" name="filterHome" id="filterAll"
-                    onchange="handleFilterChange(this)" value="all" checked>
-                <div class="filterHomeLabel">الجميع</div>
-            </label>
-            <label for="filterCome">
-                <input type="radio" class="filterHome" name="filterHome" id="filterCome"
-                    onchange="handleFilterChange(this)" value="صادر">
-                <div class="filterHomeLabel">الصادر</div>
 
-            </label>
-            <label for="filterSend">
-                <input type="radio" class="filterHome" name="filterHome" id="filterSend"
-                    onchange="handleFilterChange(this)" value="وارد">
-                <div class="filterHomeLabel">الوارد</div>
-            </label>
-        </div>
-    </div>
     <!-- End Search -->
     <!-- Start history -->
     <div class="history noPrint">
         <div class="container">
-            <ul class="nav nav-tabs historyTabs" id="parcelTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active historyTab" id="historyT-tab" data-bs-toggle="tab"
-                        data-bs-target="#historyT" type="button" role="tab" aria-controls="historyT"
-                        aria-selected="true">
-                        الارساليات
-                    </button>
-                </li>
-                {{-- <li class="nav-item" role="presentation">
-                    <button class="nav-link historyTab" id="historyTrip-tab" data-bs-toggle="tab"
-                        data-bs-target="#historyTrip" type="button" role="tab" aria-controls="historyTrip"
-                        aria-selected="false">
-                        ارساليات السائقين
-                    </button>
-                </li> --}}
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link historyTab" id="historyS-tab" data-bs-toggle="tab" data-bs-target="#historyS"
-                        type="button" role="tab" aria-controls="historyS" aria-selected="false">
-                        السفريات
-                    </button>
-                </li>
-
-
-            </ul>
-
             <div class="tab-content">
                 <div class="tab-pane fade show active historyT" id="historyT" role="tabpanel"
                     aria-labelledby="historyT-tab">
+                    <div class="search noPrint">
+                        <div class="container">
+                            <form action="">
+                                <img src="image/search.png" alt="search" />
+                                <input onkeyup="searchh()" type="text" id="search" placeholder="ابحث هنا" />
+                            </form>
+                            <label for="filterAll">
+                                <input type="radio" class="filterHome" name="filterHome" id="filterAll"
+                                    onchange="handleFilterChange(this)" value="all" checked>
+                                <div class="filterHomeLabel">الجميع</div>
+                            </label>
+                            <label for="filterCome">
+                                <input type="radio" class="filterHome" name="filterHome" id="filterCome"
+                                    onchange="handleFilterChange(this)" value="صادر">
+                                <div class="filterHomeLabel">الصادر</div>
+                
+                            </label>
+                            <label for="filterSend">
+                                <input type="radio" class="filterHome" name="filterHome" id="filterSend"
+                                    onchange="handleFilterChange(this)" value="وارد">
+                                <div class="filterHomeLabel">الوارد</div>
+                            </label>
+                        </div>
+                    </div>
                     <table class="myTable" id="parcelsTable">
                         <thead>
                             <tr>
@@ -111,6 +159,14 @@
                     </table>
                 </div>
                 <div class="tab-pane fade historyS" id="historyS" role="tabpanel" aria-labelledby="historyS-tab">
+                    <div class="search noPrint">
+                        <div class="container">
+                            <form action="">
+                                <img src="image/search.png" alt="search" />
+                                <input onkeyup="searchh()" type="text" id="search" placeholder="ابحث هنا" />
+                            </form>
+                        </div>
+                    </div>
                     <table class="myTable" id="indexTicketTable">
                         <thead>
                             <tr>

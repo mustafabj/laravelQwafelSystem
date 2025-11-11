@@ -238,15 +238,15 @@ button.delete {
 }
 /* scroll to top  */
 /* Start Search  */
-.search {
-  padding-top: var(--main-padding-top);
-}
 .search h1 {
   text-align: center;
 }
 .search .container {
   display: flex;
   align-items: center;
+  background-color: white;
+  padding: 35px 35px 15px;
+  border-top: 1px solid #dee2e6 !important;
 }
 @media (max-width: 767px) {
   .search .container {
@@ -365,8 +365,12 @@ button.delete {
 /* End Search  */
 /* Start history */
 .history {
-  padding-top: var(--main-padding-top);
   padding-bottom: var(--main-padding-bottom);
+}
+.history .tab-content{
+  border: 1px solid #dee2e6;
+  border-top: none;
+
 }
 .history table {
   table-layout: fixed;
@@ -408,6 +412,9 @@ button.delete {
   cursor: pointer;
   width: 100%;
   color: #000;
+}
+.historyTabs button:not(.active){
+
 }
 .historyTabs button:hover{
   color: var(--main-color);

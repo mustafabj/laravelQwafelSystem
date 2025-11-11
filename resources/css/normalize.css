@@ -349,3 +349,6 @@ template {
 [hidden] {
   display: none;
 }
+.container{
+  padding: 0;
+}
