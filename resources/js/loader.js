@@ -20,6 +20,7 @@ App.config.loader = {
      */
     pages: {
         'dashboard': ['Pages/Dashboard.js'],
+        'Orders': ['Pages/OrderWizard.js'],
     },
 
     /**

@@ -168,9 +168,9 @@ button.delete {
   opacity: 1;
   z-index: 99;
 }
-.tab {
+/* .tab {
   display: none;
-}
+} */
 .active {
   display: block;
 }

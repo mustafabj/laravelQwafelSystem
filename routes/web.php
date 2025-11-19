@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ParcelController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\OrdersController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -26,6 +27,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/fetch-last-tickets', [TicketController::class, 'fetchLastTickets'])->name('fetch-last-tickets');
     Route::post('/Tickets/show', [TicketController::class, 'show'])
     ->name('ticket.show');
+    // Order
+    Route::get('/parcels-tickets', [OrdersController::class, 'index'])->name('Orders');
 });
 
 require __DIR__.'/auth.php';

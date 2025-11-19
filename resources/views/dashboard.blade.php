@@ -1,6 +1,6 @@
 @extends('layouts.app')
 @section('content')
-    <div class="container mt-3">
+    <div class="container mt-3 noPrint">
         <!-- Statistics Cards -->
         <div class="row g-3 mb-4">
 
@@ -61,6 +61,9 @@
             </div>
 
         </div>
+
+        <a href="{{ @route('Orders') }}" class="parcelsButton"> الارساليات والسفريات</a>
+
         <ul class="nav nav-tabs historyTabs" id="parcelTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active historyTab" id="historyT-tab" data-bs-toggle="tab"

@@ -3,6 +3,8 @@ import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 import Toastify from 'toastify-js';
 import "toastify-js/src/toastify.css";
+import Stepper from 'bs-stepper';
+import 'bs-stepper/dist/css/bs-stepper.min.css';
 
 window.Pusher = Pusher;
 window.Alpine = Alpine;

@@ -82,7 +82,7 @@ class Parcel extends Model
         CASE
             WHEN parcels.officeId = ? THEN 'صادر'
             ELSE 'وارد'
-        END AS status_label", [$user->officeId])->orderByDesc('parcelDate')->limit(10000);
+        END AS status_label", [$user->officeId])->orderByDesc('parcelDate')->limit(100);
 
         if ($user->role !== 'admin') {
             $query->where(function ($sub) use ($user) {
