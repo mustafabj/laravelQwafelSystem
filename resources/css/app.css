@@ -2,5 +2,7 @@
 /* @import './all.min.css';
 @import './framework.css';
 @import './master.css'; */
-@import './qwafel.css';
 @import './normalize.css';
+@import './qwafel.css';
+@import './layout.css';
+@import './dashboard.css';

@@ -68,7 +68,7 @@ class Ticket extends Model
     public static function getLastTickets()
     {
         $user = Auth::user();
-        $query = self::with(['customer', 'user', 'office'])->orderByDesc('ticketDate')->limit(100);
+        $query = self::with(['customer', 'user', 'office', 'address'])->orderByDesc('ticketDate')->limit(100);
 
         if ($user->role !== 'admin') {
             $query->where(function ($sub) use ($user) {

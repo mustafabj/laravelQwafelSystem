@@ -1,5 +1,4 @@
 <x-guest-layout>
-    <x-auth-session-status class="mb-4" :status="session('status')" />
 
     <h2 class="mt-0 mb-20 fs-28" style="text-align: center;">تسجيل الدخول</h2>
     <form method="POST" action="{{ route('login') }}">

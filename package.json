@@ -17,6 +17,7 @@
     },
     "dependencies": {
         "bootstrap": "^5.3.8",
+        "bs-stepper": "^1.7.0",
         "laravel-echo": "^2.2.6",
         "pusher-js": "^8.4.0",
         "toastify-js": "^1.12.0",

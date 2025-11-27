@@ -1,10 +1,16 @@
-<div class="container">
-    <div onclick="paksClick()">
-        <img src="image/box2.png" alt="box" />
-        ارساليات
+<div class="type-selection-container">
+    <div class="type-card" data-order-type="parcel">
+        <div class="type-icon">
+            <img src="{{ asset('image/box2.png') }}" alt="parcel" />
+        </div>
+        <h3 class="type-title">ارساليات</h3>
+        <p class="type-description">إنشاء ارسالية شحن جديدة</p>
     </div>
-    <div onclick="custClick()">
-        <img src="image/suv-car.png" alt="suv-car" />
-        سفريات
+    <div class="type-card" data-order-type="ticket">
+        <div class="type-icon">
+            <img src="{{ asset('image/suv-car.png') }}" alt="ticket" />
+        </div>
+        <h3 class="type-title">سفريات</h3>
+        <p class="type-description">إنشاء تذكرة سفر جديدة</p>
     </div>
 </div>

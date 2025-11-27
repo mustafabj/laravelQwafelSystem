@@ -1,8 +1,8 @@
 <!-- Start Search -->
 <div class="search">
     <div class="container">
-        <form action="" id="search-form">
-            <button>
+        <form action="" id="search-form" onsubmit="return false;">
+            <button >
                 <img src="image/search.png" alt="search" /></button>
             <input type="text" id="search-customer" placeholder="ابحث هنا" />
         </form>
@@ -12,8 +12,7 @@
 <!-- End Search -->
 <!-- start Table  -->
 <div class="customer-table phoneCall">
-    <div class="container">
-        <div class="Table" id="tableName">
+    <div class="Table" id="tableName">
             <table>
                 <thead>
                     <tr>
@@ -29,10 +28,8 @@
                     </tr>
                 </thead>
                 <tbody id="customerBody">
-
-
+                    @include('Orders.partials.customer_empty_state', ['type' => 'initial'])
                 </tbody>
             </table>
         </div>
-    </div>
 </div>

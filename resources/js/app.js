@@ -3,8 +3,6 @@ import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 import Toastify from 'toastify-js';
 import "toastify-js/src/toastify.css";
-import Stepper from 'bs-stepper';
-import 'bs-stepper/dist/css/bs-stepper.min.css';
 
 window.Pusher = Pusher;
 window.Alpine = Alpine;
@@ -21,10 +19,22 @@ window.App = {
     init() {
         this.bindCommonEvents();
         this.initAlpine();
+        // Initialize Echo early for real-time updates
         this.initEcho();
+        // Components will be initialized by loader after they're loaded
 
         if(this.config.debug){
             this.utils.log('App init');
+        }
+    },
+
+    /**
+     * Initialize global components
+     * Called after components are loaded by the loader
+     */
+    initComponents() {
+        if (App.components && typeof App.components.Layout !== 'undefined') {
+            App.components.Layout.init();
         }
     },
 
@@ -33,20 +43,34 @@ window.App = {
         Alpine.start();
     },
 
+    /**
+     * Initialize Echo/Pusher (lazy loaded when needed)
+     * Only initialize if not already initialized
+     */
     initEcho() {
-        this.config.echo = new Echo({
-            broadcaster: 'pusher',
-            key: import.meta.env.VITE_PUSHER_APP_KEY,
-            cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
-            forceTLS: true,
-        });
+        if (this.config.echo) {
+            return; // Already initialized
+        }
 
-        // Example subscription
-        this.config.echo.channel('test-channel')
-            .listen('TestPusherEvent', (e) => {
-                this.utils.showToast(`${e.message}`, 'success');
-                this.utils.log('Pusher event received:', e);
+        try {
+            this.config.echo = new Echo({
+                broadcaster: 'pusher',
+                key: import.meta.env.VITE_PUSHER_APP_KEY,
+                cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+                forceTLS: true,
             });
+
+            // Example subscription
+            this.config.echo.channel('test-channel')
+                .listen('TestPusherEvent', (e) => {
+                    this.utils.showToast(`${e.message}`, 'success');
+                    this.utils.log('Pusher event received:', e);
+                });
+        } catch (error) {
+            if (this.config.debug) {
+                console.warn('[App] Echo initialization failed:', error);
+            }
+        }
     },
 
     bindCommonEvents() {

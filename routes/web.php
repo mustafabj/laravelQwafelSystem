@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ParcelController;
 use App\Http\Controllers\TicketController;
@@ -28,7 +29,23 @@ Route::middleware('auth')->group(function () {
     Route::post('/Tickets/show', [TicketController::class, 'show'])
     ->name('ticket.show');
     // Order
-    Route::get('/parcels-tickets', [OrdersController::class, 'index'])->name('Orders');
+    Route::get('/parcels-tickets', [OrdersController::class, 'index'])->name('wizard');
+    Route::post('/get-customers', [CustomerController::class, 'getCustomers'])->name('getCustomers');
+    Route::post('/get-customer', [CustomerController::class, 'getCustomer'])->name('getCustomer');
+    Route::post('/get-phone-item', [CustomerController::class, 'getPhoneItem'])->name('getPhoneItem');
+    Route::post('/update-customer-phones', [CustomerController::class, 'updatePhones'])->name('updateCustomerPhones');
+    Route::post('/store-address', [CustomerController::class, 'storeAddress'])->name('storeAddress');
+    Route::post('/update-address', [CustomerController::class, 'updateAddress'])->name('updateAddress');
+    Route::post('/get-address-rows', [CustomerController::class, 'getAddressRows'])->name('getAddressRows');
+    Route::post('/get-address-empty-state', [CustomerController::class, 'getAddressEmptyState'])->name('getAddressEmptyState');
+    Route::post('/get-address-modal', [CustomerController::class, 'getAddressModal'])->name('getAddressModal');
+    
+    // Form states
+    Route::post('/get-form-loading', [OrdersController::class, 'getFormLoadingState'])->name('getFormLoading');
+    Route::post('/get-form-error', [OrdersController::class, 'getFormErrorState'])->name('getFormError');
+    Route::get('/wizard/parcel/form', [OrdersController::class, 'getParcelForm'])->name('wizard.parcel.form');
+    Route::get('/wizard/ticket/form', [OrdersController::class, 'getTicketForm'])->name('wizard.ticket.form');
+    
 });
 
 require __DIR__.'/auth.php';

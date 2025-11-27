@@ -1,152 +1,132 @@
 @extends('layouts.app')
+
+@section('page-title', 'لوحة التحكم')
+
 @section('content')
-    <div class="container mt-3 noPrint">
+    <div class="dashboard-modern">
         <!-- Statistics Cards -->
-        <div class="row g-3 mb-4">
-
-            <!-- Total Parcels -->
-            <div class="col-12 col-md-3">
-                <div class="card shadow-sm border-0 h-100">
-                    <div class="card-body text-center">
-                        <div class="d-flex justify-content-center align-items-center mb-2">
-                            <i class="fas fa-box text-primary fa-lg me-2"></i>
-                            <h6 class="mb-0 fw-bold">عدد الإرساليات</h6>
-                        </div>
-                        <h4 class="fw-bold text-dark mb-0">{{ $totalParcels ?? 0 }}</h4>
-                        <small class="text-muted">منذ بداية الشهر</small>
-                    </div>
+        <div class="stats-grid">
+            <div class="stat-card stat-primary">
+                <div class="stat-icon">
+                    <i class="fas fa-box"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">{{ $totalParcels ?? 0 }}</div>
+                    <div class="stat-label">عدد الإرساليات</div>
+                    <div class="stat-subtitle">منذ بداية الشهر</div>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i>
                 </div>
             </div>
 
-            <!-- Total Tickets -->
-            <div class="col-12 col-md-3">
-                <div class="card shadow-sm border-0 h-100">
-                    <div class="card-body text-center">
-                        <div class="d-flex justify-content-center align-items-center mb-2">
-                            <i class="fas fa-bus text-success fa-lg me-2"></i>
-                            <h6 class="mb-0 fw-bold">عدد السفريات</h6>
-                        </div>
-                        <h4 class="fw-bold text-dark mb-0">{{ $totalTickets ?? 0 }}</h4>
-                        <small class="text-muted">خلال هذا الشهر</small>
-                    </div>
+            <div class="stat-card stat-success">
+                <div class="stat-icon">
+                    <i class="fas fa-bus"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">{{ $totalTickets ?? 0 }}</div>
+                    <div class="stat-label">عدد السفريات</div>
+                    <div class="stat-subtitle">خلال هذا الشهر</div>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i>
                 </div>
             </div>
 
-            <!-- Accepted -->
-            <div class="col-12 col-md-3">
-                <div class="card shadow-sm border-0 h-100">
-                    <div class="card-body text-center">
-                        <div class="d-flex justify-content-center align-items-center mb-2">
-                            <i class="fas fa-check-circle text-success fa-lg me-2"></i>
-                            <h6 class="mb-0 fw-bold">المقبولة</h6>
-                        </div>
-                        <h4 class="fw-bold text-success mb-0">{{ $acceptedCount ?? 0 }}</h4>
-                        <small class="text-muted">طلبات مكتملة</small>
-                    </div>
+            <div class="stat-card stat-info">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">{{ $acceptedCount ?? 0 }}</div>
+                    <div class="stat-label">المقبولة</div>
+                    <div class="stat-subtitle">طلبات مكتملة</div>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-arrow-up"></i>
                 </div>
             </div>
 
-            <!-- Pending -->
-            <div class="col-12 col-md-3">
-                <div class="card shadow-sm border-0 h-100">
-                    <div class="card-body text-center">
-                        <div class="d-flex justify-content-center align-items-center mb-2">
-                            <i class="fas fa-hourglass-half text-warning fa-lg me-2"></i>
-                            <h6 class="mb-0 fw-bold">الجديدة</h6>
-                        </div>
-                        <h4 class="fw-bold text-warning mb-0">{{ $pendingCount ?? 0 }}</h4>
-                        <small class="text-muted">بانتظار المعالجة</small>
-                    </div>
+            <div class="stat-card stat-warning">
+                <div class="stat-icon">
+                    <i class="fas fa-hourglass-half"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value">{{ $pendingCount ?? 0 }}</div>
+                    <div class="stat-label">الجديدة</div>
+                    <div class="stat-subtitle">بانتظار المعالجة</div>
+                </div>
+                <div class="stat-trend">
+                    <i class="fas fa-clock"></i>
                 </div>
             </div>
-
         </div>
 
-        <a href="{{ @route('Orders') }}" class="parcelsButton"> الارساليات والسفريات</a>
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <a href="{{ route('wizard') }}" class="action-btn action-primary">
+                <i class="fas fa-plus-circle"></i>
+                <span>إضافة إرسالية أو تذكرة</span>
+            </a>
+        </div>
 
-        <ul class="nav nav-tabs historyTabs" id="parcelTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active historyTab" id="historyT-tab" data-bs-toggle="tab"
-                    data-bs-target="#historyT" type="button" role="tab" aria-controls="historyT"
-                    aria-selected="true">
-                    الارساليات
+        <!-- Tabs Section -->
+        <div class="tabs-container">
+            <div class="tabs-header">
+                <button class="tab-btn active" data-tab="parcels">
+                    <i class="fas fa-box"></i>
+                    <span>الارساليات</span>
                 </button>
-            </li>
-            {{-- <li class="nav-item" role="presentation">
-                <button class="nav-link historyTab" id="historyTrip-tab" data-bs-toggle="tab"
-                    data-bs-target="#historyTrip" type="button" role="tab" aria-controls="historyTrip"
-                    aria-selected="false">
-                    ارساليات السائقين
+                <button class="tab-btn" data-tab="tickets">
+                    <i class="fas fa-bus"></i>
+                    <span>السفريات</span>
                 </button>
-            </li> --}}
-            <li class="nav-item" role="presentation">
-                <button class="nav-link historyTab" id="historyS-tab" data-bs-toggle="tab" data-bs-target="#historyS"
-                    type="button" role="tab" aria-controls="historyS" aria-selected="false">
-                    السفريات
-                </button>
-            </li>
+            </div>
 
-
-        </ul>
-    </div>
-    <!-- Start Search -->
-    <div class="scroll-to-top  noPrint">
-        <span class="up"><img src="image/top.png" alt="top" /></span>
-    </div>
-
-    <!-- End Search -->
-    <!-- Start history -->
-    <div class="history noPrint">
-        <div class="container">
-            <div class="tab-content">
-                <div class="tab-pane fade show active historyT" id="historyT" role="tabpanel"
-                    aria-labelledby="historyT-tab">
-                    <div class="search noPrint">
-                        <div class="container">
-                            <form action="">
-                                <img src="image/search.png" alt="search" />
-                                <input onkeyup="searchh()" type="text" id="search" placeholder="ابحث هنا" />
-                            </form>
-                            <label for="filterAll">
-                                <input type="radio" class="filterHome" name="filterHome" id="filterAll"
-                                    onchange="handleFilterChange(this)" value="all" checked>
-                                <div class="filterHomeLabel">الجميع</div>
-                            </label>
-                            <label for="filterCome">
-                                <input type="radio" class="filterHome" name="filterHome" id="filterCome"
-                                    onchange="handleFilterChange(this)" value="صادر">
-                                <div class="filterHomeLabel">الصادر</div>
-                
-                            </label>
-                            <label for="filterSend">
-                                <input type="radio" class="filterHome" name="filterHome" id="filterSend"
-                                    onchange="handleFilterChange(this)" value="وارد">
-                                <div class="filterHomeLabel">الوارد</div>
-                            </label>
-                        </div>
+            <!-- Parcels Tab -->
+            <div class="tab-content active" id="parcels-tab">
+                <div class="table-controls">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="parcelsSearch" placeholder="ابحث في الارساليات..." onkeyup="searchh()">
                     </div>
-                    <table class="myTable" id="parcelsTable">
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-filter="all" onclick="handleFilterChange(this)" value="all">
+                            <span>الجميع</span>
+                        </button>
+                        <button class="filter-btn" data-filter="صادر" onclick="handleFilterChange(this)" value="صادر">
+                            <span>الصادر</span>
+                        </button>
+                        <button class="filter-btn" data-filter="وارد" onclick="handleFilterChange(this)" value="وارد">
+                            <span>الوارد</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table" id="parcelsTable">
                         <thead>
                             <tr>
-                                <td>رقم الارسالية</td>
-                                <td>اسم العميل</td>
-                                <td>رقم العميل</td>
-                                <td>اسم المرسل اليه</td>
-                                <td>رقم المرسل اليه</td>
-                                <td>اسم الموظف</td>
-                                <td>المكتب</td>
-                                <td>المكتب المرسل اليه</td>
-                                <td>تاريخ الوصل</td>
-                                <td>صادر / وارد</td>
-                                <td>الحالة</td>
+                                <th>رقم الارسالية</th>
+                                <th>اسم العميل</th>
+                                <th>رقم العميل</th>
+                                <th>اسم المرسل اليه</th>
+                                <th>رقم المرسل اليه</th>
+                                <th>اسم الموظف</th>
+                                <th>المكتب</th>
+                                <th>المكتب المرسل اليه</th>
+                                <th>تاريخ الوصل</th>
+                                <th>صادر / وارد</th>
+                                <th>الحالة</th>
                             </tr>
                         </thead>
                         <tbody id="indexParecelsBody">
                             @foreach ($parcels as $parcel)
                                 <tr data-parcel-id="{{ $parcel->parcelId }}"
-                                    class="{{ $parcel->accept === 'no' ? 'notAccept' : '' }}">
-                                    <td class="name">{{ $parcel->parcelNumber }}</td>
-                                    <td class="name">{{ $parcel->customer?->FName }} {{ $parcel->customer?->LName }}</td>
+                                    class="{{ $parcel->accept === 'no' ? 'row-pending' : '' }}">
+                                    <td><strong>{{ $parcel->parcelNumber }}</strong></td>
+                                    <td>{{ $parcel->customer?->FName }} {{ $parcel->customer?->LName }}</td>
                                     <td>{{ $parcel->custNumber }}</td>
                                     <td>{{ $parcel->recipientName }}</td>
                                     <td>{{ $parcel->recipientNumber }}</td>
@@ -154,44 +134,54 @@
                                     <td>{{ $parcel->originOffice?->officeName }}</td>
                                     <td>{{ $parcel->destinationOffice?->officeName }}</td>
                                     <td>{{ $parcel->parcelDate }}</td>
-                                    <td>{{ $parcel->status_label }}</td>
-                                    <td>{{ $parcel->accept === 'no' ? 'جديد' : 'مقبول' }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ $parcel->status_label === 'صادر' ? 'primary' : 'secondary' }}">
+                                            {{ $parcel->status_label }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge {{ $parcel->accept === 'no' ? 'status-pending' : 'status-accepted' }}">
+                                            {{ $parcel->accept === 'no' ? 'جديد' : 'مقبول' }}
+                                        </span>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
-                <div class="tab-pane fade historyS" id="historyS" role="tabpanel" aria-labelledby="historyS-tab">
-                    <div class="search noPrint">
-                        <div class="container">
-                            <form action="">
-                                <img src="image/search.png" alt="search" />
-                                <input onkeyup="searchh()" type="text" id="search" placeholder="ابحث هنا" />
-                            </form>
-                        </div>
+            </div>
+
+            <!-- Tickets Tab -->
+            <div class="tab-content" id="tickets-tab">
+                <div class="table-controls">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="ticketsSearch" placeholder="ابحث في السفريات..." onkeyup="searchh()">
                     </div>
-                    <table class="myTable" id="indexTicketTable">
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table" id="indexTicketTable">
                         <thead>
                             <tr>
-                                <td>رقم التذكرة</td>
-                                <td>اسم العميل</td>
-                                <td>رقم العميل</td>
-                                <td>اسم الموظف</td>
-                                <td>اسم المكتب</td>
-                                <td>السفر من</td>
-                                <td>السفر الى</td>
-                                <td>تاريخ التذكرة</td>
-                                <td>الحالة</td>
+                                <th>رقم التذكرة</th>
+                                <th>اسم العميل</th>
+                                <th>رقم العميل</th>
+                                <th>اسم الموظف</th>
+                                <th>اسم المكتب</th>
+                                <th>السفر من</th>
+                                <th>السفر الى</th>
+                                <th>تاريخ التذكرة</th>
+                                <th>الحالة</th>
                             </tr>
                         </thead>
                         <tbody id="indexTicketBody">
                             @foreach ($tickets as $ticket)
                                 <tr data-ticket-id="{{ $ticket->ticketId }}"
-                                    class="{{ $ticket->accept === 'no' ? 'notAccept' : '' }}"
+                                    class="{{ $ticket->accept === 'no' ? 'row-pending' : '' }}"
                                     data-id="{{ $ticket->id }}">
-                                    <td class="name">{{ $ticket->tecketNumber }}</td>
-                                    <td class="name">{{ $ticket->customer?->FName }} {{ $ticket->customer?->LName }}
-                                    </td>
+                                    <td><strong>{{ $ticket->tecketNumber }}</strong></td>
+                                    <td>{{ $ticket->customer?->FName }} {{ $ticket->customer?->LName }}</td>
                                     <td>{{ $ticket->custNumber }}</td>
                                     <td>{{ $ticket->user?->name }}</td>
                                     <td>{{ $ticket->office?->officeName }}</td>
@@ -202,22 +192,21 @@
                                         @if ($address && $address->city)
                                             {{ $address->city }} / {{ $address->area }}
                                         @else
-                                            لا يوجد عنوان
+                                            <span class="text-muted">لا يوجد عنوان</span>
                                         @endif
                                     </td>
                                     <td>{{ $ticket->destination }}</td>
                                     <td>{{ $ticket->ticketDate }}</td>
-                                    <td>{{ $ticket->accept === 'no' ? 'جديد' : 'مقبول' }}</td>
+                                    <td>
+                                        <span class="status-badge {{ $ticket->accept === 'no' ? 'status-pending' : 'status-accepted' }}">
+                                            {{ $ticket->accept === 'no' ? 'جديد' : 'مقبول' }}
+                                        </span>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
-                <div class="tab-pane fade" id="historyTrip" role="tabpanel" aria-labelledby="historyTrip-tab">
-                    <h5>قائمة السفريات</h5>
-                    <!-- Content for third tab -->
-                </div>
-
             </div>
         </div>
     </div>
