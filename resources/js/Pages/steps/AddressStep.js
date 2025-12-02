@@ -113,51 +113,97 @@ App.pages.OrderWizard.AddressStep = {
         }
     },
 
-    async showAddressModal(wizard, mode = 'add', address = null) {
+    showAddressModal(wizard, mode = 'add', address = null) {
         const modalElement = document.getElementById('appModal');
         const modalBody = document.getElementById('appModalBody');
+        const template = document.getElementById('addressModalTemplate');
         
-        if (!modalElement || !modalBody) {
+        if (!modalElement || !modalBody || !template) {
             App.utils.showToast("خطأ في فتح النافذة", "error");
             return;
         }
 
-        try {
-            // Load modal HTML from server
-            const res = await App.utils.ajax(route("getAddressModal"), {
-                method: "POST",
-                body: JSON.stringify({
-                    mode: mode,
-                    address: address || {},
-                }),
-            });
+        // Clone template content
+        const templateContent = template.content.cloneNode(true);
+        modalBody.innerHTML = '';
+        modalBody.appendChild(templateContent);
 
-            if (!res.html) {
-                App.utils.showToast("فشل تحميل النافذة", "error");
-                return;
-            }
-
-            // Inject HTML
-            modalBody.innerHTML = res.html;
-
-            // Show modal
-            const modal = new Modal(modalElement, {
-                backdrop: true,
-                keyboard: true
-            });
-            modal.show();
-
-            // Prevent body scroll when modal is open
-            document.body.classList.add('modal-open');
-
-            // Bind modal handlers
-            this.bindAddressModal(modal, modalElement, modalBody, wizard, mode, address);
-        } catch (err) {
-            if (App.config?.debug) {
-                console.error('[AddressStep] Failed to load address modal:', err);
-            }
-            App.utils.showToast("فشل تحميل النافذة", "error");
+        const isEdit = mode === 'edit';
+        
+        // Update modal title and form ID
+        const titleElement = document.getElementById('addressModalTitle');
+        const formElement = document.getElementById('addressForm');
+        const submitBtn = document.getElementById('submitAddressBtn');
+        
+        if (titleElement) {
+            titleElement.textContent = isEdit ? 'تعديل عنوان' : 'اضافة عنوان';
         }
+        
+        if (formElement) {
+            formElement.id = isEdit ? 'editAddressForm' : 'addAddressForm';
+        }
+        
+        if (submitBtn) {
+            submitBtn.textContent = isEdit ? 'حفظ التعديلات' : 'اضافة';
+        }
+
+        // Update field IDs for edit mode
+        if (isEdit) {
+            const cityInput = document.getElementById('addressCity');
+            const areaInput = document.getElementById('addressArea');
+            const streetInput = document.getElementById('addressStreet');
+            const buildingInput = document.getElementById('addressBuilding');
+            const infoInput = document.getElementById('addressInfo');
+            
+            if (cityInput) {
+                cityInput.id = 'editAddressCity';
+                cityInput.value = address?.city || '';
+            }
+            if (areaInput) {
+                areaInput.id = 'editAddressArea';
+                areaInput.value = address?.area || '';
+            }
+            if (streetInput) {
+                streetInput.id = 'editAddressStreet';
+                streetInput.value = address?.street || '';
+            }
+            if (buildingInput) {
+                buildingInput.id = 'editAddressBuilding';
+                buildingInput.value = address?.buildingNumber || '';
+            }
+            if (infoInput) {
+                infoInput.id = 'editAddressInfo';
+                infoInput.value = address?.info || '';
+            }
+        } else {
+            // Clear fields for add mode
+            const cityInput = document.getElementById('addressCity');
+            const areaInput = document.getElementById('addressArea');
+            const streetInput = document.getElementById('addressStreet');
+            const buildingInput = document.getElementById('addressBuilding');
+            const infoInput = document.getElementById('addressInfo');
+            
+            if (cityInput) cityInput.value = '';
+            if (areaInput) areaInput.value = '';
+            if (streetInput) streetInput.value = '';
+            if (buildingInput) buildingInput.value = '';
+            if (infoInput) infoInput.value = '';
+        }
+
+        // Show modal immediately
+        const modal = new Modal(modalElement, {
+            backdrop: true,
+            keyboard: true
+        });
+        
+        // Show modal immediately without waiting
+        requestAnimationFrame(() => {
+            modal.show();
+            document.body.classList.add('modal-open');
+        });
+
+        // Bind modal handlers
+        this.bindAddressModal(modal, modalElement, modalBody, wizard, mode, address);
     },
 
     bindAddressModal(modal, modalElement, modalBody, wizard, mode, address) {
@@ -245,11 +291,8 @@ App.pages.OrderWizard.AddressStep = {
 
         // Load form in background (non-blocking)
         if (App.pages.OrderWizard.FormStep) {
-            App.pages.OrderWizard.FormStep.loadForm('ticket', wizard).catch(err => {
-                if (App.config?.debug) {
-                    console.error('[AddressStep] Failed to load form:', err);
-                }
-            });
+            // Instant load from cache
+            App.pages.OrderWizard.FormStep.loadForm('ticket', wizard);
         }
     },
 
@@ -272,7 +315,7 @@ App.pages.OrderWizard.AddressStep = {
     },
 
     async submitAddressForm(wizard, modalInstance, modalElement) {
-        const form = document.getElementById("addAddressForm");
+        const form = document.getElementById("addAddressForm") || document.getElementById("addressForm");
         if (!form) return;
 
         if (!form.checkValidity()) {

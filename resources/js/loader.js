@@ -7,6 +7,17 @@
 // import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import './app.js'; 
 
+// Pre-bundle all modules using Vite's glob import for production builds
+const modules = import.meta.glob([
+    './Components/Layout.js',
+    './Pages/Dashboard.js',
+    './Pages/steps/CustomerStep.js',
+    './Pages/steps/PhoneStep.js',
+    './Pages/steps/AddressStep.js',
+    './Pages/steps/FormStep.js',
+    './Pages/OrderWizard.js',
+], { eager: false });
+
 App.config.loader = {
     /**
      * Define all your global components that should load everywhere.
@@ -55,8 +66,13 @@ App.config.loader = {
         // Load files sequentially to ensure step files are loaded before main file
         for (const file of filesToLoad) {
             try {
-                await import(/* @vite-ignore */ `./${file}`);
-                if (App.config.debug) console.log(`[Loader] Loaded: ${file}`);
+                const modulePath = `./${file}`;
+                if (modules[modulePath]) {
+                    await modules[modulePath]();
+                    if (App.config.debug) console.log(`[Loader] Loaded: ${file}`);
+                } else {
+                    console.warn(`[Loader] Module not found in bundle: ${file}`);
+                }
             } catch (error) {
                 console.warn(`[Loader] Failed to load: ${file}`, error);
             }

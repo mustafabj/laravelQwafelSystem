@@ -186,16 +186,51 @@ class CustomerController extends Controller
         ]);
     }
 
-    public function getAddressModal(Request $request)
+    public function storeCustomer(Request $request)
     {
-        $mode = $request->input('mode', 'add'); // 'add' or 'edit'
-        $address = $request->input('address', []);
-        
+        $request->validate([
+            'FName' => 'required|string|max:255',
+            'LName' => 'required|string|max:255',
+            'phoneNumber' => 'required|string|max:255',
+            'passport' => 'nullable|string|max:255',
+            'custState' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:255',
+            'aria' => 'nullable|string|max:255',
+            'streetName' => 'nullable|string|max:255',
+            'buildingNumber' => 'nullable|string|max:255',
+            'descAddress' => 'nullable|string',
+        ]);
+
+        // Create customer
+        $customer = Customer::create([
+            'FName' => $request->FName,
+            'LName' => $request->LName,
+            'customerPassport' => $request->passport ?? '',
+            'customerState' => $request->custState ?? '',
+            'phone1' => $request->phoneNumber,
+            'phone2' => '',
+            'phone3' => '',
+            'phone4' => '',
+            'addedDate' => now(),
+        ]);
+
+        // Create address if provided
+        if ($request->city || $request->aria || $request->streetName || $request->buildingNumber) {
+            \App\Models\Address::create([
+                'customerId' => $customer->customerId,
+                'city' => $request->city ?? '',
+                'area' => $request->aria ?? '',
+                'street' => $request->streetName ?? '',
+                'buildingNumber' => $request->buildingNumber ?? '',
+                'info' => $request->descAddress ?? '',
+                'addedDay' => now(),
+            ]);
+        }
+
         return response()->json([
-            'html' => view('Orders.partials.address_modal', [
-                'mode' => $mode,
-                'address' => $address,
-            ])->render(),
+            'success' => true,
+            'customerId' => $customer->customerId,
+            'message' => 'تم اضافة العميل بنجاح',
         ]);
     }
     

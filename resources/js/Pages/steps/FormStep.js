@@ -3,7 +3,64 @@ App.pages = App.pages || {};
 App.pages.OrderWizard = App.pages.OrderWizard || {};
 
 App.pages.OrderWizard.FormStep = {
-    async loadForm(type, wizard) {
+    // Cache for pre-loaded forms
+    cachedForms: {
+        parcel: null,
+        ticket: null
+    },
+    formsLoaded: false,
+
+    // Pre-load both forms when type step is shown
+    async preloadForms() {
+        if (this.formsLoaded) return;
+
+        try {
+            // Load both forms in parallel
+            const [parcelRes, ticketRes] = await Promise.all([
+                App.utils.ajax(route("wizard.parcel.form"), { method: "GET" }),
+                App.utils.ajax(route("wizard.ticket.form"), { method: "GET" })
+            ]);
+
+            if (parcelRes.html && parcelRes.html.trim() !== "") {
+                this.cachedForms.parcel = parcelRes.html;
+            }
+            if (ticketRes.html && ticketRes.html.trim() !== "") {
+                this.cachedForms.ticket = ticketRes.html;
+            }
+
+            this.formsLoaded = true;
+            if (App.config?.debug) {
+                console.log('[FormStep] Forms pre-loaded successfully');
+            }
+        } catch (err) {
+            if (App.config?.debug) {
+                console.error('[FormStep] Failed to pre-load forms:', err);
+            }
+        }
+    },
+
+    // Instant form loading from cache
+    loadForm(type, wizard) {
+        const container = document.getElementById("orderStepFormContainer");
+        if (!container) return;
+
+        // Check if form is cached
+        const cachedForm = this.cachedForms[type];
+        if (cachedForm) {
+            // Instant swap - no loading delay
+            container.innerHTML = cachedForm;
+            // Populate readonly fields and bind form events
+            this.populateFormFields(type, wizard);
+            this.bindFormEvents(type, wizard);
+            return;
+        }
+
+        // Fallback: load if not cached (shouldn't happen if preload worked)
+        this.loadFormAsync(type, wizard);
+    },
+
+    // Async loading (fallback)
+    async loadFormAsync(type, wizard) {
         const container = document.getElementById("orderStepFormContainer");
         if (!container) return;
 
@@ -19,6 +76,9 @@ App.pages.OrderWizard.FormStep = {
             const res = await App.utils.ajax(url, { method: "GET" });
             
             if (res.html && res.html.trim() !== "") {
+                // Cache it for next time
+                this.cachedForms[type] = res.html;
+                
                 requestAnimationFrame(() => {
                     container.innerHTML = res.html;
                     // Populate readonly fields and bind form events
@@ -133,11 +193,12 @@ App.pages.OrderWizard.FormStep = {
             const newParcelBtn = parcelBtn.cloneNode(true);
             parcelBtn.parentNode.replaceChild(newParcelBtn, parcelBtn);
             
-            newParcelBtn.addEventListener("click", async (e) => {
+            newParcelBtn.addEventListener("click", (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 wizard.currentType = "parcel";
-                await this.loadForm("parcel", wizard);
+                // Instant load from cache
+                this.loadForm("parcel", wizard);
                 wizard.nextStep();
             });
         }
@@ -147,11 +208,12 @@ App.pages.OrderWizard.FormStep = {
             const newTicketBtn = ticketBtn.cloneNode(true);
             ticketBtn.parentNode.replaceChild(newTicketBtn, ticketBtn);
             
-            newTicketBtn.addEventListener("click", async (e) => {
+            newTicketBtn.addEventListener("click", (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 wizard.currentType = "ticket";
-                await this.loadForm("ticket", wizard);
+                // Instant load from cache
+                this.loadForm("ticket", wizard);
                 wizard.nextStep();
             });
         }
@@ -223,6 +285,10 @@ App.pages.OrderWizard.FormStep = {
     bindFormEvents(type, wizard) {
         if (type === 'parcel') {
             this.bindParcelEvents();
+            // Ensure delete buttons are properly shown/hidden on initial load
+            setTimeout(() => {
+                this.updatePackageNumbers();
+            }, 100);
         } else if (type === 'ticket') {
             this.bindTicketEvents();
         }
@@ -233,7 +299,36 @@ App.pages.OrderWizard.FormStep = {
         const packageQunt = document.getElementById('packagequnt');
         if (packageQunt) {
             packageQunt.addEventListener('change', (e) => {
-                this.updatePackageItems(parseInt(e.target.value));
+                let count = parseInt(e.target.value);
+                // Ensure minimum of 1
+                if (count < 1) {
+                    count = 1;
+                    e.target.value = 1;
+                }
+                this.updatePackageItems(count);
+            });
+        }
+
+        // Add package button
+        const addPackageBtn = document.getElementById('addPackageBtn');
+        if (addPackageBtn) {
+            addPackageBtn.addEventListener('click', () => {
+                const container = document.getElementById('packagesDet');
+                const packageQunt = document.getElementById('packagequnt');
+                if (container && packageQunt) {
+                    const currentCount = container.querySelectorAll('.package-detail').length;
+                    const newIndex = currentCount + 1;
+                    const item = this.createPackageItem(newIndex);
+                    container.appendChild(item);
+                    
+                    // Update select box value
+                    if (newIndex <= 10) {
+                        packageQunt.value = newIndex;
+                    }
+                    
+                    // Update package numbers
+                    this.updatePackageNumbers();
+                }
             });
         }
 
@@ -294,6 +389,15 @@ App.pages.OrderWizard.FormStep = {
         const container = document.getElementById('packagesDet');
         if (!container) return;
 
+        // Ensure minimum of 1 package
+        if (count < 1) {
+            count = 1;
+            const packageQunt = document.getElementById('packagequnt');
+            if (packageQunt) {
+                packageQunt.value = 1;
+            }
+        }
+
         const currentItems = container.querySelectorAll('.package-detail').length;
         
         if (count > currentItems) {
@@ -303,18 +407,58 @@ App.pages.OrderWizard.FormStep = {
                 container.appendChild(item);
             }
         } else if (count < currentItems) {
-            // Remove excess items
+            // Remove excess items, but keep at least 1
             const items = container.querySelectorAll('.package-detail');
-            for (let i = items.length - 1; i >= count; i--) {
+            const itemsToRemove = currentItems - count;
+            for (let i = items.length - 1; i >= count && i >= 1; i--) {
                 items[i].remove();
             }
         }
 
         // Update package numbers
+        this.updatePackageNumbers();
+    },
+
+    updatePackageNumbers() {
+        const container = document.getElementById('packagesDet');
+        if (!container) return;
+        
+        const totalPackages = container.querySelectorAll('.package-detail').length;
+        
         container.querySelectorAll('.package-detail').forEach((item, index) => {
             const numberEl = item.querySelector('.package-number');
             if (numberEl) {
                 numberEl.textContent = `الصنف ${index + 1}`;
+            }
+            
+            // Update data attribute
+            item.setAttribute('data-package-index', index + 1);
+            
+            // Update input IDs and labels
+            const qunInput = item.querySelector('.qun-input');
+            const descInput = item.querySelector('.desc-input');
+            const newIndex = index + 1;
+            
+            if (qunInput) {
+                qunInput.id = `qun${newIndex}`;
+                const label = item.querySelector('label[for^="qun"]');
+                if (label) label.setAttribute('for', `qun${newIndex}`);
+            }
+            
+            if (descInput) {
+                descInput.id = `desc${newIndex}`;
+                const label = item.querySelector('label[for^="desc"]');
+                if (label) label.setAttribute('for', `desc${newIndex}`);
+            }
+            
+            // Hide delete button if only one package remains
+            const deleteBtn = item.querySelector('.btn-delete-package');
+            if (deleteBtn) {
+                if (totalPackages <= 1) {
+                    deleteBtn.style.display = 'none';
+                } else {
+                    deleteBtn.style.display = 'flex';
+                }
             }
         });
     },
@@ -324,18 +468,29 @@ App.pages.OrderWizard.FormStep = {
         div.className = 'package-detail';
         div.setAttribute('data-package-index', index);
         div.innerHTML = `
-            <h4 class="package-number">الصنف ${index}</h4>
-            <div class="form-row">
+            <div class="package-header">
+                <h4 class="package-number">الصنف ${index}</h4>
+            </div>
+            <div class="package-content">
                 <div class="form-group">
-                    <label for="qun${index}">العدد</label>
-                    <input type="number" name="qun[]" id="qun${index}" class="qun-input" min="1" value="1">
+                    <label for="qun${index}">
+                        <span class="label-icon">🔢</span>
+                        العدد
+                    </label>
+                    <input type="number" name="qun[]" id="qun${index}" class="qun-input" min="1" value="1" placeholder="1">
                 </div>
-                <div class="form-group">
-                    <label for="desc${index}">الوصف</label>
-                    <textarea name="desc[]" id="desc${index}" class="desc-input" rows="3"></textarea>
+                <div class="form-group form-group-full">
+                    <label for="desc${index}">
+                        <span class="label-icon">📝</span>
+                        الوصف
+                    </label>
+                    <textarea name="desc[]" id="desc${index}" class="desc-input" rows="4" placeholder="أدخل وصف الصنف..."></textarea>
                 </div>
             </div>
-            <button type="button" class="btn-delete-package" onclick="deletePackage(this)">حذف</button>
+            <button type="button" class="btn-delete-package" onclick="deletePackage(this)">
+                <span class="btn-icon">🗑️</span>
+                حذف
+            </button>
         `;
         return div;
     },
@@ -347,19 +502,36 @@ window.deletePackage = function(button) {
     if (packageDetail) {
         const container = document.getElementById('packagesDet');
         const packageQunt = document.getElementById('packagequnt');
+        const formStep = App.pages?.OrderWizard?.FormStep;
         
         if (container && packageQunt) {
+            // Check if there's only one package left - prevent deletion
+            const currentCount = container.querySelectorAll('.package-detail').length;
+            if (currentCount <= 1) {
+                if (App.utils && App.utils.showToast) {
+                    App.utils.showToast('يجب أن يكون هناك على الأقل صنف واحد', 'warning');
+                } else {
+                    alert('يجب أن يكون هناك على الأقل صنف واحد');
+                }
+                return;
+            }
+            
             packageDetail.remove();
             const remainingCount = container.querySelectorAll('.package-detail').length;
             packageQunt.value = remainingCount;
             
-            // Update package numbers
-            container.querySelectorAll('.package-detail').forEach((item, index) => {
-                const numberEl = item.querySelector('.package-number');
-                if (numberEl) {
-                    numberEl.textContent = `الصنف ${index + 1}`;
-                }
-            });
+            // Update package numbers using the method
+            if (formStep && typeof formStep.updatePackageNumbers === 'function') {
+                formStep.updatePackageNumbers();
+            } else {
+                // Fallback: manual update
+                container.querySelectorAll('.package-detail').forEach((item, index) => {
+                    const numberEl = item.querySelector('.package-number');
+                    if (numberEl) {
+                        numberEl.textContent = `الصنف ${index + 1}`;
+                    }
+                });
+            }
         }
     }
 };

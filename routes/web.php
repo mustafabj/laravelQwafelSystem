@@ -38,7 +38,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/update-address', [CustomerController::class, 'updateAddress'])->name('updateAddress');
     Route::post('/get-address-rows', [CustomerController::class, 'getAddressRows'])->name('getAddressRows');
     Route::post('/get-address-empty-state', [CustomerController::class, 'getAddressEmptyState'])->name('getAddressEmptyState');
-    Route::post('/get-address-modal', [CustomerController::class, 'getAddressModal'])->name('getAddressModal');
+    Route::post('/store-customer', [CustomerController::class, 'storeCustomer'])->name('storeCustomer');
     
     // Form states
     Route::post('/get-form-loading', [OrdersController::class, 'getFormLoadingState'])->name('getFormLoading');

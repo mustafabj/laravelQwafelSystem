@@ -89,10 +89,16 @@ App.pages.OrderWizard = {
         // Load addresses when address step is shown
         if (step === 2 && this.customerAddresses && App.pages.OrderWizard.AddressStep) {
             App.pages.OrderWizard.AddressStep.loadAddresses(this.customerAddresses, this);
+            // Pre-load forms in background while user is on address step
+            if (App.pages.OrderWizard.FormStep) {
+                App.pages.OrderWizard.FormStep.preloadForms();
+            }
         }
         
         // Bind type buttons when type step is shown
         if (step === 3 && App.pages.OrderWizard.FormStep) {
+            // Ensure forms are loaded (in case user skipped address step)
+            App.pages.OrderWizard.FormStep.preloadForms();
             // Small delay to ensure DOM is ready
             setTimeout(() => {
                 App.pages.OrderWizard.FormStep.bindTypeButtons(this);
