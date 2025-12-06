@@ -195,7 +195,7 @@
                 </svg>
                 <span>الرجوع</span>
             </button>
-            <button type="button" class="btn btn-outline-primary" onclick="window.print()">
+            <button type="button" class="btn btn-outline-primary" id="wizardPrintBtn">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path d="M5 5H15V13H5V5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     <path d="M5 13H3C2.44772 13 2 13.4477 2 14V16C2 16.5523 2.44772 17 3 17H17C17.5523 17 18 16.5523 18 16V14C18 13.4477 17.5523 13 17 13H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>

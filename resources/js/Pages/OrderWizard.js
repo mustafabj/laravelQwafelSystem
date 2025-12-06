@@ -42,6 +42,8 @@ App.pages.OrderWizard = {
         this.updateProgress();
 
         this.bindNavButtons();
+        this.bindSubmitButton();
+        this.bindPrintButton();
         this.initDateTimeDefaults();
         
         // Initialize step modules (check if they exist)
@@ -77,6 +79,44 @@ App.pages.OrderWizard = {
                 this.prevStep();
             });
         });
+    },
+
+    bindSubmitButton() {
+        const submitBtn = document.getElementById('wizardSubmitBtn');
+        if (submitBtn) {
+            // Clone and replace to remove old listeners
+            const newSubmitBtn = submitBtn.cloneNode(true);
+            submitBtn.parentNode.replaceChild(newSubmitBtn, submitBtn);
+            
+            newSubmitBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                // Check if we're on the form step (step 4, index 4)
+                if (this.currentStep === 4) {
+                    await this.submitCurrentForm();
+                } else {
+                    this.nextStep();
+                }
+            });
+        }
+    },
+
+    bindPrintButton() {
+        const printBtn = document.getElementById('wizardPrintBtn');
+        if (printBtn) {
+            // Clone and replace to remove old listeners
+            const newPrintBtn = printBtn.cloneNode(true);
+            printBtn.parentNode.replaceChild(newPrintBtn, printBtn);
+            
+            newPrintBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                // Open print page in new window if URL is available
+                if (this.printUrl) {
+                    window.open(this.printUrl, '_blank');
+                } else {
+                    App.utils.showToast("لا يوجد رابط للطباعة", "warning");
+                }
+            });
+        }
     },
 
     showStep(step) {

@@ -45,6 +45,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/get-form-error', [OrdersController::class, 'getFormErrorState'])->name('getFormError');
     Route::get('/wizard/parcel/form', [OrdersController::class, 'getParcelForm'])->name('wizard.parcel.form');
     Route::get('/wizard/ticket/form', [OrdersController::class, 'getTicketForm'])->name('wizard.ticket.form');
+    Route::post('/store-parcel', [OrdersController::class, 'storeParcel'])->name('storeParcel');
+    Route::post('/store-ticket', [OrdersController::class, 'storeTicket'])->name('storeTicket');
+    Route::get('/wizard/parcel/{id}/print', [OrdersController::class, 'printParcel'])->name('wizard.parcel.print');
+    Route::get('/wizard/ticket/{id}/print', [OrdersController::class, 'printTicket'])->name('wizard.ticket.print');
     
 });
 

@@ -9,6 +9,7 @@ App.pages.OrderWizard.FormStep = {
         ticket: null
     },
     formsLoaded: false,
+    isSubmitting: false, // Prevent duplicate submissions
 
     // Pre-load both forms when type step is shown
     async preloadForms() {
@@ -126,61 +127,6 @@ App.pages.OrderWizard.FormStep = {
         }
     },
 
-    async submitCurrentForm(wizard) {
-        const type = wizard.currentType;
-        if (!type) {
-            App.utils.showToast("الرجاء اختيار نوع الطلب أولاً", "warning");
-            return;
-        }
-
-        const form = document.querySelector(
-            type === "parcel" ? "#saveParcel" : "#saveTicket"
-        );
-        
-        if (!form) {
-            App.utils.showToast("النموذج غير موجود", "error");
-            return;
-        }
-
-        // Validate form before submission
-        if (!form.checkValidity()) {
-            form.reportValidity();
-            return;
-        }
-
-        const formData = Object.fromEntries(new FormData(form).entries());
-
-        try {
-            const url =
-                type === "parcel"
-                    ? route("wizard.parcel.save")
-                    : route("wizard.ticket.save");
-
-            const res = await App.utils.ajax(url, {
-                method: "POST",
-                body: JSON.stringify(formData),
-            });
-
-            // res should contain HTML for print view, example: { html: '...' }
-            const printContainer = document.getElementById(
-                "orderPrintContainer"
-            );
-            
-            if (printContainer && res.html) {
-                requestAnimationFrame(() => {
-                    printContainer.innerHTML = res.html;
-                });
-            }
-
-            App.utils.showToast("تم حفظ الطلب بنجاح", "success");
-            wizard.nextStep();
-        } catch (err) {
-            if (App.config?.debug) {
-                console.error('[FormStep] Failed to submit form:', err);
-            }
-            App.utils.showToast("حدث خطأ أثناء الحفظ", "error");
-        }
-    },
 
     bindTypeButtons(wizard) {
         // Remove existing listeners to prevent duplicates
@@ -218,12 +164,8 @@ App.pages.OrderWizard.FormStep = {
             });
         }
 
-        if (submitBtn) {
-            submitBtn.addEventListener("click", async (e) => {
-                e.preventDefault();
-                await this.submitCurrentForm(wizard);
-            });
-        }
+        // Submit button is handled by OrderWizard.bindSubmitButton()
+        // No need to add listener here to avoid duplicates
     },
 
     populateFormFields(type, wizard) {
@@ -347,11 +289,16 @@ App.pages.OrderWizard.FormStep = {
             });
         }
 
-        // Form submission
+        // Form submission - remove old listener first
         const form = document.getElementById('saveParcel');
         if (form) {
-            form.addEventListener('submit', async (e) => {
+            // Clone form to remove all event listeners
+            const newForm = form.cloneNode(true);
+            form.parentNode.replaceChild(newForm, form);
+            
+            newForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
+                if (this.isSubmitting) return;
                 const wizard = App.pages.OrderWizard;
                 await this.submitCurrentForm(wizard);
             });
@@ -374,11 +321,16 @@ App.pages.OrderWizard.FormStep = {
             });
         }
 
-        // Form submission
+        // Form submission - remove old listener first
         const form = document.getElementById('saveTicket');
         if (form) {
-            form.addEventListener('submit', async (e) => {
+            // Clone form to remove all event listeners
+            const newForm = form.cloneNode(true);
+            form.parentNode.replaceChild(newForm, form);
+            
+            newForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
+                if (this.isSubmitting) return;
                 const wizard = App.pages.OrderWizard;
                 await this.submitCurrentForm(wizard);
             });
@@ -493,6 +445,299 @@ App.pages.OrderWizard.FormStep = {
             </button>
         `;
         return div;
+    },
+
+    async submitCurrentForm(wizard) {
+        // Prevent duplicate submissions
+        if (this.isSubmitting) {
+            return;
+        }
+
+        if (!wizard.selectedCustomer || !wizard.selectedCustomer.id) {
+            App.utils.showToast("الرجاء اختيار عميل أولاً", "warning");
+            return;
+        }
+
+        const formType = wizard.currentType;
+        if (!formType || (formType !== 'parcel' && formType !== 'ticket')) {
+            App.utils.showToast("نوع الطلب غير صحيح", "error");
+            return;
+        }
+
+        this.isSubmitting = true;
+        try {
+            if (formType === 'parcel') {
+                await this.submitParcelForm(wizard);
+            } else if (formType === 'ticket') {
+                await this.submitTicketForm(wizard);
+            }
+        } finally {
+            // Reset after a delay to allow for navigation
+            setTimeout(() => {
+                this.isSubmitting = false;
+            }, 2000);
+        }
+    },
+
+    async submitParcelForm(wizard) {
+        const form = document.getElementById('saveParcel');
+        if (!form) {
+            App.utils.showToast("النموذج غير موجود", "error");
+            return;
+        }
+
+        // Validate form
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        // Validate required fields
+        if (!wizard.selectedPhone) {
+            App.utils.showToast("الرجاء اختيار رقم هاتف", "warning");
+            return;
+        }
+
+        if (!wizard.selectedAddress) {
+            App.utils.showToast("الرجاء اختيار عنوان", "warning");
+            return;
+        }
+
+        // Collect package details
+        const packageDetails = [];
+        const qunInputs = form.querySelectorAll('input[name="qun[]"]');
+        const descInputs = form.querySelectorAll('textarea[name="desc[]"]');
+        
+        for (let i = 0; i < qunInputs.length; i++) {
+            const qun = parseInt(qunInputs[i].value) || 1;
+            const desc = descInputs[i].value.trim() || '';
+            if (qun > 0) {
+                packageDetails.push({
+                    qun: qun,
+                    desc: desc
+                });
+            }
+        }
+
+        if (packageDetails.length === 0) {
+            App.utils.showToast("الرجاء إضافة صنف واحد على الأقل", "warning");
+            return;
+        }
+
+        // Disable submit button
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn?.textContent;
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'جاري الحفظ...';
+        }
+
+        try {
+            const formData = new FormData(form);
+            const data = {
+                parcelNumber: formData.get('parcelid') || '',
+                customerId: wizard.selectedCustomer.id,
+                recipientName: formData.get('nameST') || '',
+                recipientNumber: formData.get('phoneST') || '',
+                sendTo: formData.get('addressST') || '',
+                cost: parseFloat(formData.get('cost')) || 0,
+                currency: formData.get('currency') || 'JD',
+                paid: formData.get('paid') || 'paid',
+                paidMethod: formData.get('paidMethod') || 'cash',
+                costRest: parseFloat(formData.get('costRest')) || 0,
+                officeReId: parseInt(formData.get('officeST')) || null,
+                paidInMainOffice: formData.get('paidInMainOffice') === 'on',
+                packageDetails: packageDetails,
+            };
+
+            const res = await App.utils.ajax(route("storeParcel"), {
+                method: "POST",
+                body: JSON.stringify(data),
+            });
+
+            if (res.success) {
+                App.utils.showToast(res.message || "تم حفظ الارسالية بنجاح", "success");
+                
+                // Store print URL for later use
+                if (res.printUrl) {
+                    wizard.printUrl = res.printUrl;
+                }
+                
+                // Navigate to print step and load preview
+                setTimeout(() => {
+                    wizard.nextStep();
+                    if (res.printUrl) {
+                        this.loadPrintPreview(res.printUrl, wizard);
+                    }
+                }, 1000);
+            } else {
+                App.utils.showToast(res.message || "فشل حفظ الارسالية", "error");
+            }
+        } catch (err) {
+            if (App.config?.debug) {
+                console.error('[FormStep] Failed to submit parcel form:', err);
+            }
+            App.utils.showToast("فشل حفظ الارسالية", "error");
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText || 'حفظ';
+            }
+        }
+    },
+
+    async submitTicketForm(wizard) {
+        const form = document.getElementById('saveTicket');
+        if (!form) {
+            App.utils.showToast("النموذج غير موجود", "error");
+            return;
+        }
+
+        // Validate form
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        // Validate required fields
+        if (!wizard.selectedPhone) {
+            App.utils.showToast("الرجاء اختيار رقم هاتف", "warning");
+            return;
+        }
+
+        if (!wizard.selectedAddress) {
+            App.utils.showToast("الرجاء اختيار عنوان", "warning");
+            return;
+        }
+
+        // Disable submit button
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn?.textContent;
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'جاري الحفظ...';
+        }
+
+        try {
+            const formData = new FormData(form);
+            const data = {
+                ticketNumber: formData.get('ticketId') || '',
+                customerId: wizard.selectedCustomer.id,
+                destination: formData.get('TrancustTo') || '',
+                Seat: formData.get('custbn') || '',
+                travelDate: formData.get('datact') || '',
+                travelTime: formData.get('timect') || '',
+                cost: parseFloat(formData.get('cost')) || 0,
+                currency: formData.get('currency') || 'JD',
+                paid: formData.get('paid') || 'paid',
+                costRest: parseFloat(formData.get('costRest')) || 0,
+                addressId: wizard.selectedAddress.addressId || null,
+            };
+
+            const res = await App.utils.ajax(route("storeTicket"), {
+                method: "POST",
+                body: JSON.stringify(data),
+            });
+
+            if (res.success) {
+                App.utils.showToast(res.message || "تم حفظ التذكرة بنجاح", "success");
+                
+                // Store print URL for later use
+                if (res.printUrl) {
+                    wizard.printUrl = res.printUrl;
+                }
+                
+                // Navigate to print step and load preview
+                setTimeout(() => {
+                    wizard.nextStep();
+                    if (res.printUrl) {
+                        this.loadPrintPreview(res.printUrl, wizard);
+                    }
+                }, 1000);
+            } else {
+                App.utils.showToast(res.message || "فشل حفظ التذكرة", "error");
+            }
+        } catch (err) {
+            if (App.config?.debug) {
+                console.error('[FormStep] Failed to submit ticket form:', err);
+            }
+            App.utils.showToast("فشل حفظ التذكرة", "error");
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText || 'حفظ';
+            }
+        }
+    },
+
+    async loadPrintPreview(printUrl, wizard) {
+        const container = document.getElementById('orderPrintContainer');
+        if (!container) return;
+
+        try {
+            // Show loading state
+            container.innerHTML = '<div class="loading-state"><div class="spinner"></div><p>جاري تحميل معاينة الطباعة...</p></div>';
+
+            // Fetch the print page HTML
+            const response = await fetch(printUrl);
+            const html = await response.text();
+            
+            // Extract styles and content
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            // Get styles from head
+            const styleTags = doc.querySelectorAll('head style');
+            let stylesHtml = '';
+            styleTags.forEach(style => {
+                if (style.textContent) {
+                    stylesHtml += `<style>${style.textContent}</style>`;
+                } else {
+                    stylesHtml += style.outerHTML;
+                }
+            });
+            
+            // Get print container content
+            const printContainer = doc.querySelector('.print-container');
+            
+            if (printContainer) {
+                // Get the inner HTML of the print container
+                const previewHtml = printContainer.innerHTML;
+                
+                // Wrap in a preview container with print styles
+                container.innerHTML = `
+                    ${stylesHtml}
+                    <div class="print-preview-wrapper" style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto; direction: rtl;">
+                        ${previewHtml}
+                    </div>
+                `;
+            } else {
+                // Fallback: use body content
+                const bodyContent = doc.body.innerHTML.replace(/onload="[^"]*"/g, '');
+                container.innerHTML = `
+                    ${stylesHtml}
+                    <div class="print-preview-wrapper" style="background: white; padding: 20px; border-radius: 8px; max-width: 800px; margin: 0 auto; direction: rtl;">
+                        ${bodyContent}
+                    </div>
+                `;
+            }
+            
+            // Bind print button
+            this.bindPrintButton(printUrl);
+        } catch (err) {
+            if (App.config?.debug) {
+                console.error('[FormStep] Failed to load print preview:', err);
+            }
+            container.innerHTML = '<div class="error-state"><p>فشل تحميل معاينة الطباعة</p></div>';
+        }
+    },
+
+    bindPrintButton(printUrl) {
+        // The print button is handled by OrderWizard.bindPrintButton()
+        // Just ensure the URL is stored in wizard
+        if (printUrl && App.pages.OrderWizard) {
+            App.pages.OrderWizard.printUrl = printUrl;
+        }
     },
 };
 
