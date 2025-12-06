@@ -2,13 +2,12 @@
  * Dashboard Page
  * Handles dashboard-specific functionality: tabs, search, filters, and table interactions
  */
-
 import { Modal } from 'bootstrap';
 
-App.pages = App.pages || {};
-
-App.pages.Dashboard = {
-    initialized: false,
+class DashboardPage {
+    constructor() {
+        this.initialized = false;
+    }
 
     /**
      * Initialize dashboard functionality
@@ -30,7 +29,7 @@ App.pages.Dashboard = {
         if (App.config.debug) {
             console.log('[Dashboard] Initialized');
         }
-    },
+    }
 
     /**
      * Initialize tab switching functionality
@@ -52,7 +51,7 @@ App.pages.Dashboard = {
                 }
             });
         });
-    },
+    }
 
     /**
      * Initialize filter buttons
@@ -64,7 +63,7 @@ App.pages.Dashboard = {
                 btn.classList.add('active');
             });
         });
-    },
+    }
 
     /**
      * Bind UI events for the dashboard
@@ -83,7 +82,7 @@ App.pages.Dashboard = {
                 this.showTicketModal(row.dataset.ticketId);
             });
         });
-    },
+    }
 
     /**
      * Show parcel details in modal
@@ -103,7 +102,7 @@ App.pages.Dashboard = {
         } catch (err) {
             modalBody.innerHTML = '<div class="text-danger text-center py-5">خطأ في الاتصال بالخادم</div>';
         }
-    },
+    }
 
     /**
      * Show ticket details in modal
@@ -124,7 +123,7 @@ App.pages.Dashboard = {
         } catch (error) {
             modalBody.innerHTML = '<div class="text-danger text-center py-5">حدث خطأ في تحميل البيانات</div>';
         }
-    },
+    }
 
     /**
      * Search function for table filtering
@@ -132,11 +131,15 @@ App.pages.Dashboard = {
      */
     search() {
         const activeTab = document.querySelector('.tab-content.active');
-        if (!activeTab) return;
+        if (!activeTab) {
+            return;
+        }
 
         const searchInput = activeTab.querySelector('input[type="text"]');
         const table = activeTab.querySelector('.data-table');
-        if (!searchInput || !table) return;
+        if (!searchInput || !table) {
+            return;
+        }
 
         const filter = searchInput.value.toUpperCase();
         const rows = table.querySelectorAll('tbody tr');
@@ -153,7 +156,7 @@ App.pages.Dashboard = {
 
             row.style.display = found ? '' : 'none';
         });
-    },
+    }
 
     /**
      * Handle filter change for table rows
@@ -161,11 +164,15 @@ App.pages.Dashboard = {
      */
     handleFilterChange(selectedElement) {
         const activeTab = document.querySelector('.tab-content.active');
-        if (!activeTab) return;
+        if (!activeTab) {
+            return;
+        }
 
         const filter = selectedElement.dataset.filter || selectedElement.value;
         const table = activeTab.querySelector('.data-table');
-        if (!table) return;
+        if (!table) {
+            return;
+        }
 
         const rows = table.querySelectorAll('tbody tr');
         const searchInput = activeTab.querySelector('input[type="text"]');
@@ -191,11 +198,13 @@ App.pages.Dashboard = {
 
             row.style.display = found ? '' : 'none';
         });
-    },
-};
+    }
+}
 
-// Dashboard will be initialized by the loader after it's loaded
-// No need for separate DOMContentLoaded listener - loader handles it
+// Create instance and attach to App.pages for backward compatibility
+const dashboardPage = new DashboardPage();
+App.pages = App.pages || {};
+App.pages.Dashboard = dashboardPage;
 
 // Expose search and filter functions globally for inline event handlers
 window.searchh = function() {
@@ -205,3 +214,5 @@ window.searchh = function() {
 window.handleFilterChange = function(element) {
     App.pages.Dashboard.handleFilterChange(element);
 };
+
+export default dashboardPage;

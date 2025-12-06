@@ -4,7 +4,6 @@
  * Dynamically imports all page scripts based on the Laravel route name.
  * Loads global components on every page automatically.
  */
-// import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import './app.js'; 
 
 // Pre-bundle all modules using Vite's glob import for production builds
@@ -18,19 +17,16 @@ const modules = import.meta.glob([
     './Pages/OrderWizard.js',
 ], { eager: false });
 
-App.config.loader = {
     /**
-     * Define all your global components that should load everywhere.
+ * Loader configuration and initialization
      */
-    components: [
+class Loader {
+    constructor() {
+        this.components = [
         'Components/Layout.js',
-    ],
+        ];
 
-    /**
-     * Define optional page-specific scripts.
-     * Keys must match Laravel route names (Route::currentRouteName()).
-     */
-    pages: {
+        this.pages = {
         'dashboard': ['Pages/Dashboard.js'],
         'wizard': [
             'Pages/steps/CustomerStep.js',
@@ -39,7 +35,8 @@ App.config.loader = {
             'Pages/steps/FormStep.js',
             'Pages/OrderWizard.js',
         ],
-    },
+        };
+    }
 
     /**
      * Load all files for the current page + global components.
@@ -54,6 +51,7 @@ App.config.loader = {
         const stepFiles = pageFiles.filter(file => file.includes('/steps/'));
         const mainPageFile = pageFiles.find(file => !file.includes('/steps/'));
         const filesToLoad = [...globalFiles, ...stepFiles];
+        
         if (mainPageFile) {
             filesToLoad.push(mainPageFile);
         }
@@ -69,7 +67,9 @@ App.config.loader = {
                 const modulePath = `./${file}`;
                 if (modules[modulePath]) {
                     await modules[modulePath]();
-                    if (App.config.debug) console.log(`[Loader] Loaded: ${file}`);
+                    if (App.config.debug) {
+                        console.log(`[Loader] Loaded: ${file}`);
+                    }
                 } else {
                     console.warn(`[Loader] Module not found in bundle: ${file}`);
                 }
@@ -96,11 +96,16 @@ App.config.loader = {
                     App.pages[moduleName].init();
                 }
         }
-    },
-};
+    }
+}
 
+// Create loader instance and attach to App.config
+const loader = new Loader();
+App.config.loader = loader;
 
-(function() {
+/**
+ * Initialize the application
+ */
     const initApp = async () => {
         if (typeof App === 'undefined') {
             console.error('[Loader] App not found after import.');
@@ -124,9 +129,11 @@ App.config.loader = {
         }
     };
 
+// Initialize when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initApp);
     } else {
         initApp();
     }
-})();
+
+export default loader;

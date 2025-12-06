@@ -1,20 +1,28 @@
-App.pages = App.pages || {};
+/**
+ * OrderWizard Page
+ * Main wizard controller that manages step navigation and coordinates step modules
+ */
 
+class OrderWizard {
+    constructor() {
 // Preserve existing step modules if they were loaded first
-const existingSteps = App.pages.OrderWizard || {};
-
-App.pages.OrderWizard = {
-    ...existingSteps, // Preserve step modules (FormStep, CustomerStep, PhoneStep)
-    currentStep: 0,
-    steps: null,
-    tabsHead: null,
-    currentType: null, // 'parcel' or 'ticket'
-    selectedCustomer: null,
-    selectedPhone: null,
-    selectedAddress: null,
-    customerAddresses: [],
-    phoneCounter: 1,
-    initialized: false,
+        const existingSteps = App.pages?.OrderWizard || {};
+        
+        // Merge with existing steps to preserve step modules
+        Object.assign(this, existingSteps);
+        
+        this.currentStep = 0;
+        this.steps = null;
+        this.tabsHead = null;
+        this.currentType = null; // 'parcel' or 'ticket'
+        this.selectedCustomer = null;
+        this.selectedPhone = null;
+        this.selectedAddress = null;
+        this.customerAddresses = [];
+        this.phoneCounter = 1;
+        this.initialized = false;
+        this.printUrl = null;
+    }
 
     init() {
         if (this.initialized) {
@@ -25,14 +33,18 @@ App.pages.OrderWizard = {
         }
 
         const form = document.getElementById("tabs-content");
-        if (!form) return;
+        if (!form) {
+            return;
+        }
 
         this.steps = form.querySelectorAll(".tab");
         this.tabsHead = document.querySelectorAll(".tabs ul li");
 
-        if (this.steps.length === 0) return;
+        if (this.steps.length === 0) {
+            return;
+        }
 
-        if(App.config.debug){
+        if (App.config.debug) {
             console.log("[OrderWizard] Stepper initialized");
         }
 
@@ -61,7 +73,7 @@ App.pages.OrderWizard = {
         }
         
         this.initialized = true;
-    },
+    }
 
     bindNavButtons() {
         // Next buttons
@@ -79,7 +91,7 @@ App.pages.OrderWizard = {
                 this.prevStep();
             });
         });
-    },
+    }
 
     bindSubmitButton() {
         const submitBtn = document.getElementById('wizardSubmitBtn');
@@ -98,7 +110,7 @@ App.pages.OrderWizard = {
                 }
             });
         }
-    },
+    }
 
     bindPrintButton() {
         const printBtn = document.getElementById('wizardPrintBtn');
@@ -117,7 +129,7 @@ App.pages.OrderWizard = {
                 }
             });
         }
-    },
+    }
 
     showStep(step) {
         this.steps.forEach((s) => s.classList.remove("active"));
@@ -144,14 +156,14 @@ App.pages.OrderWizard = {
                 App.pages.OrderWizard.FormStep.bindTypeButtons(this);
             }, 100);
         }
-    },
+    }
 
     tabshead(tab) {
         this.tabsHead.forEach((t) => t.classList.remove("active"));
         if (this.tabsHead[tab]) {
             this.tabsHead[tab].classList.add("active");
         }
-    },
+    }
 
     updateProgress() {
         const totalSteps = this.steps.length;
@@ -167,9 +179,13 @@ App.pages.OrderWizard = {
         // Update step numbers
         const currentStepNumber = document.getElementById("currentStepNumber");
         const totalStepsEl = document.getElementById("totalSteps");
-        if (currentStepNumber) currentStepNumber.textContent = currentStepNum;
-        if (totalStepsEl) totalStepsEl.textContent = totalSteps;
-    },
+        if (currentStepNumber) {
+            currentStepNumber.textContent = currentStepNum;
+        }
+        if (totalStepsEl) {
+            totalStepsEl.textContent = totalSteps;
+        }
+    }
 
     nextStep() {
         this.currentStep++;
@@ -179,11 +195,11 @@ App.pages.OrderWizard = {
             this.showStep(this.currentStep);
             this.tabshead(this.currentStep);
         }
-    },
+    }
 
     prevStep() {
         if (this.currentStep === 0) {
-            // same behavior as your old code: go back to home/index
+            // Go back to home/index
             window.location.href = "/";
             return;
         }
@@ -198,10 +214,10 @@ App.pages.OrderWizard = {
         
         this.showStep(this.currentStep);
         this.tabshead(this.currentStep);
-    },
+    }
 
     initDateTimeDefaults() {
-        // same as your old code: set min date, default time, etc.
+        // Set min date, default time, etc.
         const dateInput = document.getElementById("datact");
         if (dateInput) {
             const today = new Date();
@@ -221,35 +237,42 @@ App.pages.OrderWizard = {
             const min = String(now.getMinutes()).padStart(2, "0");
             timeInput.value = `${hh}:${min}`;
         }
-    },
+    }
 
     // Delegate to CustomerStep
     async selectCustomer(id) {
         await App.pages.OrderWizard.CustomerStep.selectCustomer(id, this);
-    },
+    }
 
     async loadCustomerData(customerId) {
         await App.pages.OrderWizard.CustomerStep.loadCustomerData(customerId, this);
-    },
+    }
 
     // Delegate to PhoneStep
     loadPhoneNumbers(phones) {
         App.pages.OrderWizard.PhoneStep.loadPhoneNumbers(phones, this);
-    },
+    }
 
     // Delegate to FormStep
     async loadForm(type) {
         await App.pages.OrderWizard.FormStep.loadForm(type, this);
-    },
+    }
 
     async submitCurrentForm() {
         await App.pages.OrderWizard.FormStep.submitCurrentForm(this);
-    },
+    }
 
     // Delegate to AddressStep
     loadAddresses(addresses) {
         if (App.pages.OrderWizard.AddressStep) {
             App.pages.OrderWizard.AddressStep.loadAddresses(addresses, this);
         }
-    },
-};
+    }
+}
+
+// Create instance and attach to App.pages for backward compatibility
+const orderWizard = new OrderWizard();
+App.pages = App.pages || {};
+App.pages.OrderWizard = orderWizard;
+
+export default orderWizard;

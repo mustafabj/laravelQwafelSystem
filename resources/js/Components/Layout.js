@@ -3,10 +3,10 @@
  * Handles sidebar toggle, user menu, and layout interactions
  */
 
-App.components = App.components || {};
-
-App.components.Layout = {
-    initialized: false,
+class LayoutComponent {
+    constructor() {
+        this.initialized = false;
+    }
 
     /**
      * Initialize layout functionality
@@ -28,7 +28,7 @@ App.components.Layout = {
         if (App.config.debug) {
             console.log('[Layout] Initialized');
         }
-    },
+    }
 
     /**
      * Initialize sidebar toggle functionality
@@ -38,7 +38,9 @@ App.components.Layout = {
         const sidebarToggle = document.getElementById('sidebarToggle');
         const mobileOverlay = document.getElementById('mobileOverlay');
 
-        if (!sidebar || !sidebarToggle) return;
+        if (!sidebar || !sidebarToggle) {
+            return;
+        }
 
         const toggleSidebar = () => {
             if (window.innerWidth <= 1024) {
@@ -55,7 +57,7 @@ App.components.Layout = {
             sidebar.classList.remove('mobile-open');
             mobileOverlay.classList.remove('active');
         });
-    },
+    }
 
     /**
      * Initialize user menu dropdown
@@ -64,7 +66,9 @@ App.components.Layout = {
         const userMenu = document.getElementById('userMenu');
         const userButton = userMenu?.querySelector('.user-button');
 
-        if (!userMenu || !userButton) return;
+        if (!userMenu || !userButton) {
+            return;
+        }
 
         // Toggle menu on button click
         userButton.addEventListener('click', (e) => {
@@ -78,7 +82,7 @@ App.components.Layout = {
                 userMenu.classList.remove('active');
             }
         });
-    },
+    }
 
     /**
      * Handle window resize events
@@ -98,6 +102,12 @@ App.components.Layout = {
                 }
             }, 150); // Debounce resize events
         });
-    },
-};
+    }
+}
 
+// Create instance and attach to App.components for backward compatibility
+const layoutComponent = new LayoutComponent();
+App.components = App.components || {};
+App.components.Layout = layoutComponent;
+
+export default layoutComponent;
