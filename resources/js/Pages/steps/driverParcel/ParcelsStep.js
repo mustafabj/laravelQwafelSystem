@@ -1,88 +1,106 @@
-class DriverParcels {
-    constructor() {
-        this.selectedParcels = new Map();
-        this.form = null;
-        this.initialized = false;
-    }
+/**
+ * ParcelsStep Module
+ * Handles parcel selection step in DriverParcelWizard
+ * Reuses logic from DriverParcels class
+ */
+App.pages = App.pages || {};
+App.pages.DriverParcelWizard = App.pages.DriverParcelWizard || {};
 
-    init() {
-        if (this.initialized) {
-            if (App.config.debug) {
-                console.log('[DriverParcels] Already initialized');
-            }
-            return;
-        }
+App.pages.DriverParcelWizard.ParcelsStep = {
+    selectedParcels: new Map(),
+    eventsBound: false,
 
-        this.form = document.getElementById('driverParcelForm');
-        if (!this.form) {
-            return;
-        }
-
-        this.bindEvents();
-        this.initTripSelection();
-        this.initFinancialCalculations();
+    init(wizard) {
+        this.wizard = wizard;
         this.initParcelSearch();
         this.initDragAndDrop();
-        this.initialized = true;
-
-        if (App.config.debug) {
-            console.log('[DriverParcels] Initialized');
+        if (!this.eventsBound) {
+            this.bindEvents();
+            this.eventsBound = true;
         }
-    }
+        this.updateSummary();
+    },
 
     bindEvents() {
-        // Form submission
-        if (this.form) {
-            this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+        // Prevent duplicate event listeners
+        if (this.eventsBound) {
+            return;
         }
 
         // Add parcel buttons (using event delegation to handle dynamically added buttons)
-        document.addEventListener('click', (e) => {
+        // Use a single event listener with proper event handling
+        const clickHandler = (e) => {
+            // Check for add button first
             const addBtn = e.target.closest('.btn-add-parcel');
             if (addBtn) {
+                e.preventDefault();
+                e.stopPropagation();
                 this.addParcel(e);
+                return;
             }
             
+            // Check for remove button
             const removeBtn = e.target.closest('.btn-remove-parcel');
             if (removeBtn) {
+                e.preventDefault();
+                e.stopPropagation();
                 const detailId = parseInt(removeBtn.dataset.detailId);
                 if (!isNaN(detailId)) {
                     this.removeParcel(detailId);
                 }
+                return;
             }
             
+            // Check for decrease quantity button (selected parcels)
             const decreaseBtn = e.target.closest('.btn-decrease-quantity');
             if (decreaseBtn) {
+                e.preventDefault();
+                e.stopPropagation();
                 const detailId = parseInt(decreaseBtn.dataset.detailId);
                 if (!isNaN(detailId)) {
                     this.decreaseQuantity(detailId);
                 }
+                return;
             }
             
+            // Check for increase quantity button (selected parcels)
             const increaseBtn = e.target.closest('.btn-increase-quantity');
             if (increaseBtn) {
+                e.preventDefault();
+                e.stopPropagation();
                 const detailId = parseInt(increaseBtn.dataset.detailId);
                 if (!isNaN(detailId)) {
                     this.increaseQuantity(detailId);
                 }
+                return;
             }
             
+            // Check for decrease available quantity button
             const decreaseAvailableBtn = e.target.closest('.btn-decrease-available-quantity');
             if (decreaseAvailableBtn) {
+                e.preventDefault();
+                e.stopPropagation();
                 const detailId = parseInt(decreaseAvailableBtn.dataset.detailId);
                 if (!isNaN(detailId)) {
                     this.decreaseAvailableQuantity(detailId);
                 }
+                return;
             }
             
+            // Check for increase available quantity button
             const increaseAvailableBtn = e.target.closest('.btn-increase-available-quantity');
             if (increaseAvailableBtn) {
+                e.preventDefault();
+                e.stopPropagation();
                 const detailId = parseInt(increaseAvailableBtn.dataset.detailId);
                 if (!isNaN(detailId)) {
                     this.increaseAvailableQuantity(detailId);
                 }
+                return;
             }
-        });
+        };
+        
+        document.addEventListener('click', clickHandler, true); // Use capture phase
         
         // Handle quantity input changes (on blur or Enter key)
         document.addEventListener('change', (e) => {
@@ -120,40 +138,7 @@ class DriverParcels {
                 availableQuantityInput.blur();
             }
         });
-    }
-
-    initTripSelection() {
-        const tripSelect = document.getElementById('tripId');
-        const sendToInput = document.getElementById('sendTo');
-
-        if (tripSelect && sendToInput) {
-            tripSelect.addEventListener('change', (e) => {
-                const selectedOption = e.target.options[e.target.selectedIndex];
-                if (selectedOption.value) {
-                    const destination = selectedOption.dataset.destination || '';
-                    sendToInput.value = destination;
-                }
-            });
-        }
-    }
-
-    initFinancialCalculations() {
-        const costInput = document.getElementById('cost');
-        const paidInput = document.getElementById('paid');
-        const costRestInput = document.getElementById('costRest');
-
-        if (costInput && paidInput && costRestInput) {
-            const calculateRest = () => {
-                const cost = parseFloat(costInput.value) || 0;
-                const paid = parseFloat(paidInput.value) || 0;
-                const rest = Math.max(0, cost - paid);
-                costRestInput.value = rest.toFixed(2);
-            };
-
-            costInput.addEventListener('input', calculateRest);
-            paidInput.addEventListener('input', calculateRest);
-        }
-    }
+    },
 
     initParcelSearch() {
         const searchInput = document.getElementById('parcelDetailsSearch');
@@ -161,36 +146,36 @@ class DriverParcels {
         const searchLoading = document.getElementById('searchLoading');
         const emptyState = document.getElementById('emptySearchState');
 
-        if (!searchInput || !parcelsList) {
-            return;
-        }
+        if (!searchInput || !parcelsList) return;
 
-        let searchTimeout;
+        let searchTimeout = null;
+        const debounceDelay = 500;
 
         searchInput.addEventListener('input', (e) => {
             const searchTerm = e.target.value.trim();
 
-            clearTimeout(searchTimeout);
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
 
             if (searchTerm.length < 2) {
-                parcelsList.innerHTML = '';
                 if (emptyState) {
+                    parcelsList.innerHTML = '';
                     parcelsList.appendChild(emptyState.cloneNode(true));
                 }
+                if (searchLoading) searchLoading.style.display = 'none';
                 return;
             }
 
+            if (searchLoading) searchLoading.style.display = 'block';
+
             searchTimeout = setTimeout(() => {
                 this.searchParcelDetails(searchTerm, parcelsList, searchLoading, emptyState);
-            }, 500);
+            }, debounceDelay);
         });
-    }
+    },
 
     async searchParcelDetails(searchTerm, parcelsList, searchLoading, emptyState) {
-        if (searchLoading) {
-            searchLoading.style.display = 'block';
-        }
-
         try {
             const response = await fetch('/driver-parcels/search-parcel-details', {
                 method: 'POST',
@@ -199,51 +184,33 @@ class DriverParcels {
                     'Accept': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
                 },
-                body: JSON.stringify({ search: searchTerm, limit: 20 })
+                body: JSON.stringify({ search: searchTerm, limit: 20 }),
             });
 
-            const data = await response.json();
+            const result = await response.json();
 
-            if (searchLoading) {
-                searchLoading.style.display = 'none';
-            }
+            if (searchLoading) searchLoading.style.display = 'none';
 
-            if (data.success) {
-                parcelsList.innerHTML = '';
-                
-                if (data.parcelDetails && data.parcelDetails.length > 0) {
-                    this.renderParcelDetails(data.parcelDetails, parcelsList);
-                } else {
-                    const noResults = document.createElement('div');
-                    noResults.className = 'empty-state';
-                    noResults.innerHTML = `
-                        <i class="fas fa-search"></i>
-                        <p>لا توجد نتائج للبحث</p>
-                        <small>جرب البحث بكلمات مختلفة</small>
-                    `;
-                    parcelsList.appendChild(noResults);
-                }
+            if (result.success && result.parcelDetails && result.parcelDetails.length > 0) {
+                this.renderParcelDetails(result.parcelDetails, parcelsList);
             } else {
-                parcelsList.innerHTML = '';
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'empty-state';
-                errorDiv.innerHTML = `
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <p>حدث خطأ أثناء البحث</p>
-                    <small>${data.message || 'يرجى المحاولة مرة أخرى'}</small>
+                parcelsList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <p>لا توجد نتائج</p>
+                        <small>جرب البحث بكلمات مختلفة</small>
+                    </div>
                 `;
-                parcelsList.appendChild(errorDiv);
             }
         } catch (error) {
             console.error('Error searching parcel details:', error);
-            if (searchLoading) {
-                searchLoading.style.display = 'none';
-            }
+            if (searchLoading) searchLoading.style.display = 'none';
             App.utils.showToast('حدث خطأ أثناء البحث', 'error');
         }
-    }
+    },
 
     renderParcelDetails(parcelDetails, container) {
+        container.innerHTML = '';
         parcelDetails.forEach(detail => {
             const item = document.createElement('div');
             item.className = 'parcel-item';
@@ -293,12 +260,12 @@ class DriverParcels {
                 </div>
             `;
 
-            // Add drag event listeners
             item.addEventListener('dragstart', (e) => {
-                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.effectAllowed = 'copy';
                 e.dataTransfer.setData('text/plain', JSON.stringify({
                     detailId: detail.detailId,
-                    parcelId: detail.parcelId
+                    parcelId: detail.parcelId,
+                    quantity: item.querySelector('.quantity-input').value
                 }));
                 item.classList.add('dragging');
             });
@@ -310,8 +277,9 @@ class DriverParcels {
             container.appendChild(item);
         });
 
-        // No need to bind event listeners here - using event delegation in bindEvents()
-    }
+        // No need to bind add buttons here - using event delegation in bindEvents()
+        this.updateAvailableQuantities();
+    },
 
     addParcel(e) {
         const btn = e.target.closest('.btn-add-parcel');
@@ -326,7 +294,6 @@ class DriverParcels {
             return;
         }
 
-        // Get parcel details from data attribute
         const parcelData = JSON.parse(parcelItem.dataset.parcelData);
         const parcelId = parcelData.parcelId !== undefined && parcelData.parcelId !== null 
             ? (typeof parcelData.parcelId === 'string' ? parseInt(parcelData.parcelId) : parcelData.parcelId)
@@ -334,11 +301,6 @@ class DriverParcels {
         const parcelNumber = parcelData.parcelNumber || '';
         const customerName = parcelData.customerName || '';
         const description = parcelData.detailInfo || '';
-
-        // Debug: log parcel data
-        if (App.config.debug) {
-            console.log('Adding parcel:', { detailId, parcelId, parcelNumber, customerName, parcelData });
-        }
 
         // Check if parcel detail already exists
         if (this.selectedParcels.has(detailId)) {
@@ -382,13 +344,13 @@ class DriverParcels {
             this.updateAvailableQuantities();
             App.utils.showToast('تم إضافة الإرسالية بنجاح', 'success');
         }
-    }
+    },
 
     getAvailableQuantity(detailId, totalQuantity) {
         const selected = this.selectedParcels.get(detailId);
         const selectedQuantity = selected ? selected.quantityTaken : 0;
         return Math.max(0, totalQuantity - selectedQuantity);
-    }
+    },
 
     removeParcel(detailId) {
         if (this.selectedParcels.has(detailId)) {
@@ -397,7 +359,7 @@ class DriverParcels {
             this.updateAvailableQuantities();
             App.utils.showToast('تم إزالة الإرسالية', 'success');
         }
-    }
+    },
 
     decreaseQuantity(detailId) {
         if (!this.selectedParcels.has(detailId)) {
@@ -416,7 +378,7 @@ class DriverParcels {
         this.updateSelectedParcelsList();
         this.updateAvailableQuantities();
         App.utils.showToast(`تم تقليل الكمية إلى ${newQuantity}`, 'success');
-    }
+    },
 
     increaseQuantity(detailId) {
         if (!this.selectedParcels.has(detailId)) {
@@ -437,7 +399,7 @@ class DriverParcels {
         this.updateSelectedParcelsList();
         this.updateAvailableQuantities();
         App.utils.showToast(`تم زيادة الكمية إلى ${newQuantity}`, 'success');
-    }
+    },
 
     updateQuantity(detailId, newQuantity, totalQuantity) {
         if (!this.selectedParcels.has(detailId)) {
@@ -466,17 +428,85 @@ class DriverParcels {
         this.selectedParcels.set(detailId, parcel);
         this.updateAvailableQuantities();
         App.utils.showToast(`تم تحديث الكمية إلى ${newQuantity}`, 'success');
-    }
+    },
 
-    updateSelectedParcelsList() {
-        const selectedSection = document.getElementById('selectedParcelsSection');
-        const selectedList = document.getElementById('selectedParcelsList');
-        const selectedCount = document.getElementById('selectedCount');
-        const emptySelectedState = document.getElementById('emptySelectedState');
-
-        if (!selectedSection || !selectedList) {
+    decreaseAvailableQuantity(detailId) {
+        const parcelItem = document.querySelector(`.parcel-item[data-detail-id="${detailId}"]`);
+        if (!parcelItem) {
             return;
         }
+
+        const quantityInput = parcelItem.querySelector('.quantity-input');
+        if (!quantityInput) {
+            return;
+        }
+
+        const currentQuantity = parseInt(quantityInput.value) || 1;
+        const newQuantity = Math.max(1, currentQuantity - 1);
+
+        if (newQuantity === currentQuantity) {
+            return; // Already at minimum
+        }
+
+        quantityInput.value = newQuantity;
+    },
+
+    increaseAvailableQuantity(detailId) {
+        const parcelItem = document.querySelector(`.parcel-item[data-detail-id="${detailId}"]`);
+        if (!parcelItem) {
+            return;
+        }
+
+        const quantityInput = parcelItem.querySelector('.quantity-input');
+        if (!quantityInput) {
+            return;
+        }
+
+        const currentQuantity = parseInt(quantityInput.value) || 1;
+        const availableQuantity = parseInt(quantityInput.dataset.availableQuantity) || 0;
+        const newQuantity = currentQuantity + 1;
+
+        // Check if new quantity exceeds available
+        if (newQuantity > availableQuantity) {
+            App.utils.showToast(`الكمية المطلوبة (${newQuantity}) تتجاوز الكمية المتاحة (${availableQuantity})`, 'error');
+            return;
+        }
+
+        quantityInput.value = newQuantity;
+    },
+
+    updateAvailableQuantities() {
+        const parcelItems = document.querySelectorAll('.parcel-item');
+        
+        parcelItems.forEach(item => {
+            const detailId = parseInt(item.dataset.detailId);
+            const totalQuantity = parseInt(item.dataset.total) || 0;
+            const available = this.getAvailableQuantity(detailId, totalQuantity);
+            const availableBadge = item.querySelector('.available-badge');
+            const quantityInput = item.querySelector('.quantity-input');
+            
+            if (availableBadge) {
+                availableBadge.textContent = `متاح: ${available} / ${totalQuantity}`;
+            }
+            
+            if (quantityInput) {
+                quantityInput.max = Math.max(0, available);
+                quantityInput.dataset.availableQuantity = available;
+                if (parseInt(quantityInput.value) > available) {
+                    quantityInput.value = Math.max(1, Math.min(available, parseInt(quantityInput.value) || 1));
+                }
+            }
+            
+            // Update the data-available attribute for drag operations
+            item.setAttribute('data-available', available);
+        });
+    },
+
+    updateSelectedParcelsList() {
+        const selectedList = document.getElementById('selectedParcelsList');
+        const emptySelectedState = document.getElementById('emptySelectedState');
+
+        if (!selectedList) return;
 
         if (this.selectedParcels.size === 0) {
             selectedList.innerHTML = '';
@@ -484,24 +514,15 @@ class DriverParcels {
                 selectedList.appendChild(emptySelectedState.cloneNode(true));
             }
             selectedList.classList.add('empty');
-            if (selectedCount) {
-                selectedCount.textContent = '0';
-            }
             return;
         }
 
         selectedList.classList.remove('empty');
         selectedList.innerHTML = '';
 
-        if (selectedCount) {
-            selectedCount.textContent = this.selectedParcels.size;
-        }
-
         // Group parcels by parcelId
         const groupedParcels = new Map();
         this.selectedParcels.forEach((parcel, detailId) => {
-            // Ensure parcelId is a number for proper grouping
-            // Use the original parcelId value, not parsed, to maintain consistency
             let parcelId = parcel.parcelId;
             
             // Convert to number if it's a string
@@ -511,10 +532,6 @@ class DriverParcels {
             
             // Ensure it's a valid number
             if (isNaN(parcelId) || parcelId === null || parcelId === undefined) {
-                if (App.config.debug) {
-                    console.warn('Invalid or missing parcelId for detail:', detailId, parcel);
-                }
-                // Use a unique key for items without parcelId (shouldn't happen, but just in case)
                 parcelId = `unknown_${detailId}`;
             }
             
@@ -526,10 +543,7 @@ class DriverParcels {
                     items: []
                 });
             }
-            groupedParcels.get(parcelId).items.push({
-                detailId: detailId,
-                parcel: parcel
-            });
+            groupedParcels.get(parcelId).items.push({ detailId: detailId, parcel: parcel });
         });
 
         // Render grouped parcels
@@ -537,7 +551,7 @@ class DriverParcels {
             const container = document.createElement('div');
             container.className = 'parcel-group-container';
             container.setAttribute('data-parcel-id', parcelId);
-            
+
             const header = document.createElement('div');
             header.className = 'parcel-group-header';
             header.innerHTML = `
@@ -546,14 +560,13 @@ class DriverParcels {
                     <strong>إرسالية #${group.parcelNumber}</strong>
                     <span class="customer-name">${group.customerName}</span>
                 </div>
-                <span class="parcel-group-count">${group.items.length} عنصر</span>
             `;
             container.appendChild(header);
 
             const itemsContainer = document.createElement('div');
             itemsContainer.className = 'parcel-group-items';
             itemsContainer.setAttribute('data-parcel-id', parcelId);
-            
+
             group.items.forEach(({ detailId, parcel }) => {
                 const item = document.createElement('div');
                 item.className = 'selected-parcel-item';
@@ -591,89 +604,90 @@ class DriverParcels {
             selectedList.appendChild(container);
         });
 
-        // Reinitialize drag and drop for adding items from search
+        // Re-initialize drop zone after updating the list
         this.initDragAndDrop();
-    }
+    },
 
     initDragAndDrop() {
         const selectedList = document.getElementById('selectedParcelsList');
-        const availableList = document.getElementById('availableParcelsList');
+        if (!selectedList) return;
 
-        if (!selectedList) {
-            return;
+        // Remove old event listeners if they exist
+        if (selectedList._dragOverHandler) {
+            selectedList.removeEventListener('dragover', selectedList._dragOverHandler);
+            selectedList.removeEventListener('dragleave', selectedList._dragLeaveHandler);
+            selectedList.removeEventListener('drop', selectedList._dropHandler);
         }
 
-        // No need to make groups or items sortable - order doesn't matter
-
-        // Enable drop on selected parcels list (only add listeners once)
-        // Since updateSelectedParcelsList clears innerHTML but keeps the same element,
-        // we check if listeners are already attached using a data attribute
-        if (!selectedList.dataset.dropInitialized) {
-            selectedList.dataset.dropInitialized = 'true';
-            
-            selectedList.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
+        // Create new event handlers
+        selectedList._dragOverHandler = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.dataTransfer.dropEffect = 'copy';
+            if (!selectedList.classList.contains('drag-over')) {
                 selectedList.classList.add('drag-over');
-            });
+            }
+        };
 
-            selectedList.addEventListener('dragleave', () => {
+        selectedList._dragLeaveHandler = (e) => {
+            // Only remove class if we're leaving the selectedList itself
+            if (!selectedList.contains(e.relatedTarget)) {
                 selectedList.classList.remove('drag-over');
-            });
+            }
+        };
 
-            selectedList.addEventListener('drop', (e) => {
-                e.preventDefault();
-                selectedList.classList.remove('drag-over');
+        selectedList._dropHandler = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            selectedList.classList.remove('drag-over');
+            
+            const availableList = document.getElementById('availableParcelsList');
+            
+            try {
+                const dragData = JSON.parse(e.dataTransfer.getData('text/plain'));
+                const detailId = parseInt(dragData.detailId);
+                const draggedItem = availableList.querySelector(`[data-detail-id="${detailId}"]`);
                 
-                const availableList = document.getElementById('availableParcelsList');
-                
+                if (draggedItem) {
+                    const quantityInput = draggedItem.querySelector('.quantity-input');
+                    const quantity = parseInt(quantityInput ? quantityInput.value : dragData.quantity) || 1;
+                    this.addParcelFromDrag(draggedItem, quantity);
+                }
+            } catch (error) {
+                console.error('Error parsing drag data:', error);
+                // Fallback for old format
                 try {
-                    const dragData = JSON.parse(e.dataTransfer.getData('text/plain'));
-                    const detailId = parseInt(dragData.detailId);
-                    const draggedItem = availableList.querySelector(`[data-detail-id="${detailId}"]`);
-                    
-                    if (draggedItem) {
-                        const quantityInput = draggedItem.querySelector('.quantity-input');
-                        const quantity = parseInt(quantityInput.value) || 1;
-                        this.addParcelFromDrag(draggedItem, quantity);
-                    }
-                } catch (error) {
-                    // Fallback for old format
                     const detailId = parseInt(e.dataTransfer.getData('text/plain'));
                     const draggedItem = availableList.querySelector(`[data-detail-id="${detailId}"]`);
                     
                     if (draggedItem) {
                         const quantityInput = draggedItem.querySelector('.quantity-input');
-                        const quantity = parseInt(quantityInput.value) || 1;
+                        const quantity = parseInt(quantityInput ? quantityInput.value : 1) || 1;
                         this.addParcelFromDrag(draggedItem, quantity);
                     }
+                } catch (fallbackError) {
+                    console.error('Error in fallback drag handler:', fallbackError);
                 }
-            });
-        }
-    }
+            }
+        };
+
+        // Add event listeners
+        selectedList.addEventListener('dragover', selectedList._dragOverHandler);
+        selectedList.addEventListener('dragleave', selectedList._dragLeaveHandler);
+        selectedList.addEventListener('drop', selectedList._dropHandler);
+    },
 
     addParcelFromDrag(item, quantity = 1) {
         const detailId = parseInt(item.dataset.detailId);
         const totalQuantity = parseInt(item.dataset.total) || 0;
 
         const parcelData = JSON.parse(item.dataset.parcelData);
-        // Ensure parcelId is preserved as-is (number) from the data
         const parcelId = parcelData.parcelId !== undefined && parcelData.parcelId !== null 
             ? (typeof parcelData.parcelId === 'string' ? parseInt(parcelData.parcelId) : parcelData.parcelId)
             : 0;
         const parcelNumber = parcelData.parcelNumber || '';
         const customerName = parcelData.customerName || '';
         const description = parcelData.detailInfo || '';
-
-        // Debug: log parcel data
-        if (App.config.debug) {
-            console.log('Adding parcel from drag:', { detailId, parcelId, parcelNumber, customerName, parcelData });
-        }
-
-        // Validate parcelId exists
-        if (!parcelId && App.config.debug) {
-            console.error('Missing parcelId in parcelData:', parcelData);
-        }
 
         // Check if parcel detail already exists
         if (this.selectedParcels.has(detailId)) {
@@ -717,161 +731,80 @@ class DriverParcels {
             this.updateAvailableQuantities();
             App.utils.showToast('تم إضافة الإرسالية بنجاح', 'success');
         }
-    }
+    },
 
+    getSelectedParcels() {
+        return Array.from(this.selectedParcels.values());
+    },
 
-    decreaseAvailableQuantity(detailId) {
-        const parcelItem = document.querySelector(`.parcel-item[data-detail-id="${detailId}"]`);
-        if (!parcelItem) {
-            return;
-        }
+    updateSummary() {
+        const summaryCard = document.getElementById('parcelSummaryCard');
+        if (!summaryCard) return;
 
-        const quantityInput = parcelItem.querySelector('.quantity-input');
-        if (!quantityInput) {
-            return;
-        }
+        // Get form values
+        const driverName = document.getElementById('driverName')?.value || '-';
+        const driverPhone = document.getElementById('driverNumber')?.value || '-';
+        const tripSelect = document.getElementById('tripId');
+        const tripName = tripSelect?.options[tripSelect.selectedIndex]?.text || '-';
+        const destination = document.getElementById('sendTo')?.value || '-';
+        const tripDate = document.getElementById('tripDate')?.value || '-';
+        const parcelNumber = document.getElementById('parcelNumber')?.value || '-';
+        const officeSelect = document.getElementById('officeId');
+        const officeName = officeSelect?.options[officeSelect.selectedIndex]?.text || '-';
+        const cost = document.getElementById('cost')?.value || '0';
+        const paid = document.getElementById('paid')?.value || '0';
+        const costRest = document.getElementById('costRest')?.value || '0';
+        const currencySelect = document.getElementById('currency');
+        const currency = currencySelect?.options[currencySelect.selectedIndex]?.text || '-';
 
-        const currentQuantity = parseInt(quantityInput.value) || 1;
-        const newQuantity = Math.max(1, currentQuantity - 1);
-
-        if (newQuantity === currentQuantity) {
-            return; // Already at minimum
-        }
-
-        quantityInput.value = newQuantity;
-    }
-
-    increaseAvailableQuantity(detailId) {
-        const parcelItem = document.querySelector(`.parcel-item[data-detail-id="${detailId}"]`);
-        if (!parcelItem) {
-            return;
-        }
-
-        const quantityInput = parcelItem.querySelector('.quantity-input');
-        if (!quantityInput) {
-            return;
-        }
-
-        const currentQuantity = parseInt(quantityInput.value) || 1;
-        const availableQuantity = parseInt(quantityInput.dataset.availableQuantity) || 0;
-        const newQuantity = currentQuantity + 1;
-
-        // Check if new quantity exceeds available
-        if (newQuantity > availableQuantity) {
-            App.utils.showToast(`الكمية المطلوبة (${newQuantity}) تتجاوز الكمية المتاحة (${availableQuantity})`, 'error');
-            return;
-        }
-
-        quantityInput.value = newQuantity;
-    }
-
-    updateAvailableQuantities() {
-        const parcelItems = document.querySelectorAll('.parcel-item');
-        
-        parcelItems.forEach(item => {
-            const detailId = parseInt(item.dataset.detailId);
-            const totalQuantity = parseInt(item.dataset.total) || 0;
-            const available = this.getAvailableQuantity(detailId, totalQuantity);
-            const availableBadge = item.querySelector('.available-badge');
-            const quantityInput = item.querySelector('.quantity-input');
-            
-            if (availableBadge) {
-                availableBadge.textContent = `متاح: ${available} / ${totalQuantity}`;
+        // Format date if available
+        let formattedDate = '-';
+        if (tripDate && tripDate !== '-') {
+            try {
+                const date = new Date(tripDate);
+                formattedDate = date.toLocaleDateString('ar-EG', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            } catch (e) {
+                formattedDate = tripDate;
             }
-            
-            if (quantityInput) {
-                quantityInput.max = Math.max(0, available);
-                quantityInput.dataset.availableQuantity = available;
-                if (parseInt(quantityInput.value) > available) {
-                    quantityInput.value = Math.max(1, Math.min(available, parseInt(quantityInput.value) || 1));
-                }
-            }
-            
-            // Update the data-available attribute for drag operations
-            item.setAttribute('data-available', available);
-        });
-    }
-
-    async handleSubmit(e) {
-        e.preventDefault();
-
-        if (this.selectedParcels.size === 0) {
-            App.utils.showToast('يجب إضافة إرسالية واحدة على الأقل', 'error');
-            return;
         }
 
-        const submitBtn = document.getElementById('submitBtn');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
-
-        try {
-            // Build form data object
-            const formDataObj = {};
-            const formData = new FormData(this.form);
-            
-            // Convert FormData to object
-            for (const [key, value] of formData.entries()) {
-                if (key === 'cost' || key === 'paid' || key === 'costRest') {
-                    formDataObj[key] = value ? parseFloat(value) : 0;
-                } else {
-                    formDataObj[key] = value;
-                }
+        // Format currency values
+        const formatCurrency = (value, currencyCode) => {
+            const numValue = parseFloat(value) || 0;
+            if (currencyCode === 'IQD') {
+                return `${numValue.toFixed(2)} دينار`;
+            } else if (currencyCode === 'USD') {
+                return `$${numValue.toFixed(2)}`;
+            } else if (currencyCode === 'EUR') {
+                return `€${numValue.toFixed(2)}`;
             }
-            
-            // Add selected parcels
-            formDataObj.parcelDetails = Array.from(this.selectedParcels.values()).map(parcel => ({
-                parcelDetailId: parseInt(parcel.parcelDetailId),
-                quantityTaken: parseInt(parcel.quantityTaken)
-            }));
+            return `${numValue.toFixed(2)} ${currencyCode}`;
+        };
 
-            const response = await fetch(this.form.action || window.location.href, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formDataObj)
-            });
+        const currencyCode = currencySelect?.value || 'IQD';
 
-            const data = await response.json();
+        // Update summary elements
+        document.getElementById('summaryDriverName').textContent = driverName;
+        document.getElementById('summaryDriverPhone').textContent = driverPhone;
+        document.getElementById('summaryTripName').textContent = tripName;
+        document.getElementById('summaryDestination').textContent = destination;
+        document.getElementById('summaryTripDate').textContent = formattedDate;
+        document.getElementById('summaryParcelNumber').textContent = parcelNumber;
+        document.getElementById('summaryOffice').textContent = officeName;
+        document.getElementById('summaryCost').textContent = formatCurrency(cost, currencyCode);
+        document.getElementById('summaryPaid').textContent = formatCurrency(paid, currencyCode);
+        document.getElementById('summaryCostRest').textContent = formatCurrency(costRest, currencyCode);
+        document.getElementById('summaryCurrency').textContent = currency;
 
-            if (data.success) {
-                App.utils.showToast(data.message, 'success');
-                setTimeout(() => {
-                    window.location.href = `/driver-parcels/${data.driverParcelId}`;
-                }, 1500);
-            } else {
-                App.utils.showToast(data.message || 'حدث خطأ أثناء الحفظ', 'error');
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
-            }
-        } catch (error) {
-            console.error('Error submitting form:', error);
-            App.utils.showToast('حدث خطأ أثناء الحفظ', 'error');
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalText;
+        // Show summary card if at least driver is selected
+        if (driverName !== '-' && driverPhone !== '-') {
+            summaryCard.style.display = 'block';
+        } else {
+            summaryCard.style.display = 'none';
         }
     }
-
-}
-
-// Export and attach to App
-if (typeof App !== 'undefined') {
-    if (!App.pages) {
-        App.pages = {};
-    }
-    App.pages.DriverParcels = new DriverParcels();
-    
-    // Auto-initialize if DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-            App.pages.DriverParcels.init();
-        });
-    } else {
-        App.pages.DriverParcels.init();
-    }
-}
-
-export default App.pages.DriverParcels;
+};

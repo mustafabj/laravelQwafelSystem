@@ -11,7 +11,9 @@ class DriverParcel extends Model
     use HasFactory;
 
     protected $table = 'driverparcels';
+
     protected $primaryKey = 'parcelId';
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -68,6 +70,7 @@ class DriverParcel extends Model
     {
         return $this->belongsTo(User::class, 'userId', 'id');
     }
+
     public function trip()
     {
         return $this->belongsTo(Trip::class, 'tripId', 'tripId');
@@ -76,7 +79,7 @@ class DriverParcel extends Model
     public static function getLastDriverParcels()
     {
         $user = Auth::user();
-        $query = self::with(['user', 'office', 'trip.driver']);
+        $query = self::with(['user', 'office', 'trip']);
 
         if ($user->role !== 'admin') {
             $query->where(function ($sub) use ($user) {
@@ -122,6 +125,7 @@ class DriverParcel extends Model
                 'status' => 'arrived',
                 'arrivedAt' => now(),
             ]);
+
             return true;
         }
 
@@ -134,6 +138,7 @@ class DriverParcel extends Model
     public static function getNextParcelNumber(): int
     {
         $lastParcel = self::orderBy('parcelNumber', 'desc')->first();
+
         return $lastParcel && $lastParcel->parcelNumber >= 1
             ? $lastParcel->parcelNumber + 1
             : 1;
@@ -144,7 +149,7 @@ class DriverParcel extends Model
      */
     public static function getFilteredList($user, array $filters = []): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
-        $query = self::with(['trip.driver', 'office', 'user', 'details.parcelDetail.parcel']);
+        $query = self::with(['trip', 'office', 'user', 'details.parcelDetail.parcel']);
 
         if ($user->role !== 'admin') {
             $query->where(function ($sub) use ($user) {
@@ -170,7 +175,7 @@ class DriverParcel extends Model
     public static function findWithRelations(int $id): ?self
     {
         return self::with([
-            'trip.driver',
+            'trip',
             'office',
             'user',
             'details.parcelDetail.parcel.customer',
@@ -201,8 +206,8 @@ class DriverParcel extends Model
 
         foreach ($parcelDetails as $detailData) {
             $parcelDetail = ParcelDetail::findById($detailData['parcelDetailId']);
-            
-            if (!$parcelDetail->hasAvailableQuantity($detailData['quantityTaken'])) {
+
+            if (! $parcelDetail->hasAvailableQuantity($detailData['quantityTaken'])) {
                 throw new \Exception("الكمية المطلوبة ({$detailData['quantityTaken']}) تتجاوز الكمية المتاحة ({$parcelDetail->getAvailableQuantity()})");
             }
 
@@ -225,8 +230,8 @@ class DriverParcel extends Model
     public static function updateStatusById(int $id, string $status, ?string $delayReason = null): bool
     {
         $driverParcel = self::find($id);
-        
-        if (!$driverParcel) {
+
+        if (! $driverParcel) {
             return false;
         }
 

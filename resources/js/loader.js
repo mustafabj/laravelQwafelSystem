@@ -15,7 +15,14 @@ const modules = import.meta.glob([
     './Pages/steps/AddressStep.js',
     './Pages/steps/FormStep.js',
     './Pages/OrderWizard.js',
+    './Pages/BaseWizard.js',
+    './Pages/steps/driverParcel/DriverStep.js',
+    './Pages/steps/driverParcel/TripStep.js',
+    './Pages/steps/driverParcel/InfoStep.js',
+    './Pages/steps/driverParcel/ParcelsStep.js',
+    './Pages/DriverParcelWizard.js',
     './Pages/DriverParcels.js',
+    './Pages/Trips.js',
 ], { eager: false });
 
     /**
@@ -36,8 +43,17 @@ class Loader {
             'Pages/steps/FormStep.js',
             'Pages/OrderWizard.js',
         ],
-        'driver-parcels.create': ['Pages/DriverParcels.js'],
+        'driver-parcels.create': [
+            'Pages/BaseWizard.js',
+            'Pages/steps/driverParcel/DriverStep.js',
+            'Pages/steps/driverParcel/TripStep.js',
+            'Pages/steps/driverParcel/InfoStep.js',
+            'Pages/steps/driverParcel/ParcelsStep.js',
+            'Pages/DriverParcelWizard.js',
+        ],
         'driver-parcels.index': ['Pages/DriverParcels.js'],
+        'trips.index': ['Pages/Trips.js'],
+        'trips.create': ['Pages/Trips.js'],
         };
     }
 
@@ -49,20 +65,10 @@ class Loader {
         const route = document.body.dataset.route;
         const globalFiles = this.components;
         const pageFiles = this.pages[route] || [];
-        
-        // Separate step files from main page file
         const stepFiles = pageFiles.filter(file => file.includes('/steps/'));
-        const mainPageFile = pageFiles.find(file => !file.includes('/steps/'));
-        const filesToLoad = [...globalFiles, ...stepFiles];
-        
-        if (mainPageFile) {
-            filesToLoad.push(mainPageFile);
-        }
-
-        if (App.config.debug) {
-            console.log(`[Loader] Current route: ${route}`);
-            console.log(`[Loader] Files to load:`, filesToLoad);
-        }
+        const baseFiles = pageFiles.filter(file => file.includes('BaseWizard'));
+        const mainPageFile = pageFiles.find(file => !file.includes('/steps/') && !file.includes('BaseWizard'));
+        const filesToLoad = [...globalFiles, ...baseFiles, ...stepFiles, mainPageFile];
 
         // Load files sequentially to ensure step files are loaded before main file
         for (const file of filesToLoad) {
