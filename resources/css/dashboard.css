@@ -193,36 +193,7 @@
     flex-wrap: wrap;
 }
 
-.search-box {
-    flex: 1;
-    min-width: 300px;
-    position: relative;
-}
 
-.search-box i {
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #9ca3af;
-}
-
-.search-box input {
-    width: 100%;
-    padding: 12px 16px 12px 44px;
-    border: 2px solid #e5e7eb;
-    border-radius: 10px;
-    font-size: 14px;
-    transition: all 0.3s ease;
-    background: #f9fafb;
-}
-
-.search-box input:focus {
-    outline: none;
-    border-color: #304e58;
-    background: white;
-    box-shadow: 0 0 0 3px rgba(48, 78, 88, 0.1);
-}
 
 .filter-buttons {
     display: flex;

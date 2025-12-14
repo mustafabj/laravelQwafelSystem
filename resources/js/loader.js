@@ -15,6 +15,7 @@ const modules = import.meta.glob([
     './Pages/steps/AddressStep.js',
     './Pages/steps/FormStep.js',
     './Pages/OrderWizard.js',
+    './Pages/DriverParcels.js',
 ], { eager: false });
 
     /**
@@ -35,6 +36,8 @@ class Loader {
             'Pages/steps/FormStep.js',
             'Pages/OrderWizard.js',
         ],
+        'driver-parcels.create': ['Pages/DriverParcels.js'],
+        'driver-parcels.index': ['Pages/DriverParcels.js'],
         };
     }
 

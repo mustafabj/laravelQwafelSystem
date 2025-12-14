@@ -35,4 +35,12 @@ class Driver extends Model
     {
         return $this->hasMany(DriverParcel::class, 'driverId', 'driverId');
     }
+
+    /**
+     * Get all drivers.
+     */
+    public static function getAll(): \Illuminate\Database\Eloquent\Collection
+    {
+        return self::all();
+    }
 }

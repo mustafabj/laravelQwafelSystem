@@ -61,4 +61,12 @@ class Office extends Model
     {
         return $this->hasMany(Driver::class, 'officeId', 'officeId');
     }
+
+    /**
+     * Get all offices.
+     */
+    public static function getAll(): \Illuminate\Database\Eloquent\Collection
+    {
+        return self::all();
+    }
 }

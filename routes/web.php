@@ -6,6 +6,7 @@ use App\Http\Controllers\ParcelController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrdersController;
+use App\Http\Controllers\DriverParcelController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -50,6 +51,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/wizard/parcel/{id}/print', [OrdersController::class, 'printParcel'])->name('wizard.parcel.print');
     Route::get('/wizard/ticket/{id}/print', [OrdersController::class, 'printTicket'])->name('wizard.ticket.print');
     
+    // Driver Parcels
+    Route::resource('driver-parcels', DriverParcelController::class);
+    Route::post('/driver-parcels/search-parcel-details', [DriverParcelController::class, 'searchParcelDetails'])->name('driver-parcels.search-parcel-details');
+    Route::post('/driver-parcels/{id}/update-item-status', [DriverParcelController::class, 'updateItemStatus'])->name('driver-parcels.update-item-status');
+    Route::post('/driver-parcels/{id}/update-status', [DriverParcelController::class, 'updateStatus'])->name('driver-parcels.update-status');
 });
 
 require __DIR__.'/auth.php';

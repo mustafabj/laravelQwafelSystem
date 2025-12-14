@@ -82,6 +82,10 @@
                     <i class="fas fa-bus"></i>
                     <span>السفريات</span>
                 </button>
+                <button class="tab-btn" data-tab="driver-parcels">
+                    <i class="fas fa-truck"></i>
+                    <span>إرساليات السائقين</span>
+                </button>
             </div>
 
             <!-- Parcels Tab -->
@@ -204,6 +208,108 @@
                                     </td>
                                 </tr>
                             @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Driver Parcels Tab -->
+            <div class="tab-content" id="driver-parcels-tab">
+                <div class="table-controls">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="driverParcelsSearch" placeholder="ابحث في إرساليات السائقين..." onkeyup="searchh()">
+                    </div>
+                    <div class="filter-buttons">
+                        <a href="{{ route('driver-parcels.create') }}" class="action-btn action-primary" style="margin-right: 10px;">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>إضافة إرسالية سائق</span>
+                        </a>
+                        <a href="{{ route('driver-parcels.index') }}" class="action-btn action-secondary">
+                            <i class="fas fa-list"></i>
+                            <span>عرض الكل</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table" id="driverParcelsTable">
+                        <thead>
+                            <tr>
+                                <th>رقم الإرسالية</th>
+                                <th>اسم السائق</th>
+                                <th>رقم السائق</th>
+                                <th>الرحلة</th>
+                                <th>تاريخ الرحلة</th>
+                                <th>الوجهة</th>
+                                <th>المكتب</th>
+                                <th>اسم الموظف</th>
+                                <th>تاريخ الإنشاء</th>
+                                <th>الحالة</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="driverParcelsBody">
+                            @forelse ($driverParcels ?? [] as $driverParcel)
+                                <tr data-driver-parcel-id="{{ $driverParcel->parcelId }}"
+                                    class="{{ $driverParcel->status === 'pending' ? 'row-pending' : '' }}">
+                                    <td><strong>{{ $driverParcel->parcelNumber }}</strong></td>
+                                    <td>{{ $driverParcel->driverName }}</td>
+                                    <td>{{ $driverParcel->driverNumber }}</td>
+                                    <td>
+                                        @if ($driverParcel->trip)
+                                            {{ $driverParcel->trip->tripName }}
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if ($driverParcel->tripDate)
+                                            {{ $driverParcel->tripDate }}
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
+                                    <td>{{ $driverParcel->sendTo }}</td>
+                                    <td>{{ $driverParcel->office?->officeName ?? '-' }}</td>
+                                    <td>{{ $driverParcel->user?->name ?? '-' }}</td>
+                                    <td>{{ $driverParcel->parcelDate }}</td>
+                                    <td>
+                                        @php
+                                            $statusClasses = [
+                                                'pending' => 'status-pending',
+                                                'in_transit' => 'status-info',
+                                                'arrived' => 'status-success',
+                                                'delivered' => 'status-accepted',
+                                            ];
+                                            $statusLabels = [
+                                                'pending' => 'قيد الانتظار',
+                                                'in_transit' => 'قيد النقل',
+                                                'arrived' => 'وصلت',
+                                                'delivered' => 'تم التسليم',
+                                            ];
+                                            $statusClass = $statusClasses[$driverParcel->status] ?? 'status-pending';
+                                            $statusLabel = $statusLabels[$driverParcel->status] ?? $driverParcel->status;
+                                        @endphp
+                                        <span class="status-badge {{ $statusClass }}">
+                                            {{ $statusLabel }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{{ route('driver-parcels.show', $driverParcel->parcelId) }}" 
+                                           class="btn btn-sm btn-primary" 
+                                           title="عرض التفاصيل">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="11" class="text-center text-muted">
+                                        لا توجد إرساليات سائقين
+                                    </td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
