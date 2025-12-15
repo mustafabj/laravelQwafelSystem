@@ -29,7 +29,7 @@
                         <i class="fas fa-home"></i>
                         <span class="menu-item-text">لوحة التحكم</span>
                     </a>
-                    <a href="{{ route('wizard') }}" class="menu-item {{ request()->routeIs('wizard') ? 'active' : '' }}">
+                    <a href="{{ route('orderWizard') }}" class="menu-item {{ request()->routeIs('orderWizard') ? 'active' : '' }}">
                         <i class="fas fa-plus-circle"></i>
                         <span class="menu-item-text">الارساليات والسفريات</span>
                     </a>

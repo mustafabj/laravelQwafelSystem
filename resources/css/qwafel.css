@@ -3993,7 +3993,7 @@ select#phoneSPrinttt {
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
-    padding-right: 10px;
+    padding: 15px;
     box-sizing: border-box;
     min-height: 0;
 }
@@ -4068,6 +4068,8 @@ select#phoneSPrinttt {
     border-radius: 20px;
     font-size: 13px;
     font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(5, 95, 70, 0.1);
 }
 
 .parcel-item-body {
@@ -4688,7 +4690,6 @@ select#phoneSPrinttt {
     width: 100%;
     box-sizing: border-box;
     flex-shrink: 0;
-    margin-bottom: 20px;
 }
 
 .search-box i {
@@ -4739,66 +4740,79 @@ select#phoneSPrinttt {
 /* Parcel Group Container */
 .parcel-group-container {
     background: white;
-    border: 2px solid #e5e7eb;
-    border-radius: 12px;
-    margin-bottom: 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    margin-bottom: 16px;
     transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .parcel-group-container:hover {
     border-color: var(--main-color);
-    box-shadow: 0 4px 12px rgba(48, 78, 88, 0.1);
+    box-shadow: 0 4px 12px rgba(48, 78, 88, 0.12);
+    transform: translateY(-1px);
 }
 
 .parcel-group-container.dragging {
-    opacity: 0.5;
-    transform: rotate(2deg);
+    opacity: 0.6;
+    transform: rotate(1deg) scale(0.98);
 }
 
 .parcel-group-header {
-    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-    padding: 15px 20px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    padding: 16px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 2px solid #e5e7eb;
-    cursor: move;
+    border-bottom: 1px solid #e2e8f0;
+    cursor: default;
+    transition: background 0.2s ease;
+    border-radius: 16px;
 }
 
 .parcel-group-header:hover {
-    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
 }
 
 .parcel-group-title {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     flex: 1;
 }
 
 .parcel-group-title i {
     color: var(--main-color);
-    font-size: 18px;
+    font-size: 20px;
+    width: 24px;
+    text-align: center;
 }
 
 .parcel-group-title strong {
-    color: var(--main-color);
-    font-size: 16px;
+    color: #1e293b;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
 }
 
 .parcel-group-title .customer-name {
-    color: #6b7280;
+    color: #64748b;
     font-size: 14px;
-    margin-right: 10px;
+    font-weight: 500;
+    margin-right: 12px;
+    padding-right: 12px;
+    border-right: 1px solid #e2e8f0;
 }
 
 .parcel-group-count {
     background: var(--main-color);
     color: white;
-    padding: 4px 12px;
-    border-radius: 12px;
+    padding: 5px 14px;
+    border-radius: 20px;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    box-shadow: 0 2px 4px rgba(48, 78, 88, 0.2);
 }
 
 .parcel-group-items {
@@ -4807,15 +4821,175 @@ select#phoneSPrinttt {
     flex-direction: column;
     gap: 10px;
     min-height: 50px;
+    background: #fafbfc;
+    border-radius: 16px;
 }
 
+/* Available parcels in groups */
+.parcel-group-items .parcel-item {
+    margin-bottom: 0;
+    border: 1px solid #e2e8f0;
+    padding: 14px 16px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    transition: all 0.2s ease;
+}
+
+.parcel-group-items .parcel-item:hover {
+    border-color: var(--main-color);
+    box-shadow: 0 2px 6px rgba(48, 78, 88, 0.1);
+    transform: translateX(-2px);
+}
+
+.parcel-group-items .parcel-item-header {
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.parcel-group-items .parcel-item-header .available-badge {
+    margin: 0;
+    font-size: 14px;
+    padding: 6px 12px;
+    font-weight: 600;
+}
+
+.parcel-group-items .parcel-item-body {
+    margin-top: 0;
+}
+
+.parcel-group-items .parcel-item-body p {
+    margin: 0 0 12px 0;
+    color: #475569;
+    font-size: 16px;
+    line-height: 1.6;
+    font-weight: 500;
+    padding: 0;
+    background: transparent;
+}
+
+.parcel-group-items .parcel-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.parcel-group-items .parcel-actions .quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.parcel-group-items .parcel-actions .quantity-input {
+    width: 60px;
+    padding: 6px 8px;
+    font-size: 14px;
+    text-align: center;
+    border: none;
+    background: white;
+    border-radius: 4px;
+}
+
+.parcel-group-items .parcel-actions .btn-decrease-available-quantity,
+.parcel-group-items .parcel-actions .btn-increase-available-quantity {
+    padding: 6px 10px;
+    min-width: 32px;
+    font-size: 14px;
+    background: var(--main-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.parcel-group-items .parcel-actions .btn-decrease-available-quantity:hover,
+.parcel-group-items .parcel-actions .btn-increase-available-quantity:hover {
+    background: var(--main-color-alt);
+    transform: scale(1.05);
+}
+
+.parcel-group-items .parcel-actions .btn-decrease-available-quantity:disabled {
+    background: #d1d5db;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.parcel-group-items .parcel-actions .btn-add-parcel {
+    padding: 6px 14px;
+    font-size: 13px;
+}
+
+/* Selected parcels in groups */
 .parcel-group-items .selected-parcel-item {
     margin-bottom: 0;
-    border: 1px solid #e5e7eb;
+    border: 1px solid #e2e8f0;
+    background: white;
+    border-radius: 10px;
+    padding: 12px 16px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    transition: all 0.2s ease;
 }
 
 .parcel-group-items .selected-parcel-item:hover {
     border-color: #0ea5e9;
+    box-shadow: 0 2px 6px rgba(14, 165, 233, 0.15);
+    transform: translateX(-2px);
+}
+
+.parcel-group-items .selected-parcel-item .selected-parcel-info {
+    margin-bottom: 0;
+}
+
+.parcel-group-items .selected-parcel-item .parcel-description {
+    margin: 0;
+    color: #475569;
+    font-size: 16px;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+/* Improve quantity controls in groups */
+.parcel-group-items .quantity-controls {
+    border: 1px solid #e2e8f0;
+    background: #fafbfc;
+}
+
+.parcel-group-items .quantity-edit-input {
+    background: white;
+    border: 1px solid #e2e8f0;
+}
+
+.parcel-group-items .btn-decrease-quantity,
+.parcel-group-items .btn-increase-quantity {
+    background: var(--main-color);
+    border: none;
+}
+
+.parcel-group-items .btn-remove-parcel {
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    transition: all 0.2s ease;
+}
+
+.parcel-group-items .btn-remove-parcel:hover {
+    background: #dc2626;
+    transform: scale(1.05);
 }
 
 @media (max-width: 1024px) {
@@ -5485,7 +5659,7 @@ select#phoneSPrinttt {
 
 .summary-content {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 25px;
 }
 

@@ -114,7 +114,7 @@ class DriverParcelController extends Controller
                 'driverName' => $request->driverName,
                 'driverNumber' => $request->driverNumber,
                 'sendTo' => $request->sendTo,
-                'officeId' => $request->officeId,
+                'officeId' => session()->get('officeId'),
                 'cost' => $request->cost ?? 0,
                 'paid' => $request->paid ?? 0,
                 'costRest' => $request->costRest ?? 0,

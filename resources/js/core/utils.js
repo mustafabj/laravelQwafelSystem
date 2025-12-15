@@ -1,137 +1,118 @@
 import Toastify from 'toastify-js';
 import 'toastify-js/src/toastify.css';
+import App from '../app.js';
 
-/**
- * Toast notification types and their background colors
- */
-const TOAST_TYPES = {
+/* ================= LOGGER ================= */
+
+export function log(...args) {
+    if (App.config.debug) {
+        console.log('[App]', ...args);
+    }
+}
+
+export function warn(...args) {
+    if (App.config.debug) {
+        console.warn('[App]', ...args);
+    }
+}
+
+export function error(...args) {
+    console.error('[App]', ...args);
+}
+
+/* ================= TOAST ================= */
+
+const TOAST_BG = {
     success: 'linear-gradient(to right, #00b09b, #96c93d)',
     error: 'linear-gradient(to right, #e74c3c, #c0392b)',
     warning: 'linear-gradient(to right, #f39c12, #f1c40f)',
     info: 'linear-gradient(to right, #3498db, #2980b9)',
-    primary: 'linear-gradient(to right, #2ecc71, #27ae60)',
 };
 
-/**
- * Default toast configuration
- */
-const DEFAULT_TOAST_CONFIG = {
-    duration: 3500,
-    gravity: 'top',
-    position: 'right',
-    stopOnFocus: true,
-    style: {
-        borderRadius: '8px',
-        padding: '12px 20px',
-        fontSize: '18px',
-        color: '#fff',
+export function toast(message, type = 'info') {
+    Toastify({
+        text: message,
+        duration: 3500,
+        gravity: 'top',
+        position: 'right',
+        style: {
+            background: TOAST_BG[type] || TOAST_BG.info,
+            borderRadius: '8px',
+            color: '#fff',
+        }
+    }).showToast();
+}
+
+/* ================= NETWORK ================= */
+
+export async function request(url, { method = 'GET', data = null, timeout = 10000 } = {}) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
+
+    const options = {
+        method,
+        signal: controller.signal,
+        headers: {
+            Accept: 'application/json',
+        }
+    };
+
+    if (data !== null) {
+        options.headers['Content-Type'] = 'application/json';
+        options.body = JSON.stringify(data);
+    }
+
+    if (method !== 'GET') {
+        options.headers['X-CSRF-TOKEN'] = App.config.csrfToken;
+    }
+
+    try {
+        const res = await fetch(url, options);
+        clearTimeout(timer);
+
+        const text = await res.text();
+        const json = text ? JSON.parse(text) : {};
+
+        if (!res.ok) {
+            throw new Error(json.message || `HTTP ${res.status}`);
+        }
+
+        return json;
+    } catch (err) {
+        clearTimeout(timer);
+        throw err;
+    }
+}
+
+export const Network = {
+    get(url, params = null) {
+        let full = url;
+        if (params) {
+            const qs = new URLSearchParams(params).toString();
+            if (qs) full += (url.includes('?') ? '&' : '?') + qs;
+        }
+        return request(full);
     },
+    post(url, data) {
+        return request(url, { method: 'POST', data });
+    }
 };
 
-/**
- * Logger utility
- */
-export class Logger {
-    constructor(debug = false) {
-        this.debug = debug;
-    }
+/* ================= HELPERS ================= */
 
-    log(...args) {
-        if (this.debug) {
-            console.log('[App]', ...args);
-        }
-    }
-
-    warn(...args) {
-        if (this.debug) {
-            console.warn('[App]', ...args);
-        }
-    }
-
-    error(...args) {
-        console.error('[App]', ...args);
-    }
+export function parseIntSafe(value, fallback = 0) {
+    const n = parseInt(value, 10);
+    return Number.isNaN(n) ? fallback : n;
 }
 
-/**
- * Toast notification utility
- */
-export class Toast {
-    show(message, type = 'info') {
-        const background = TOAST_TYPES[type] || TOAST_TYPES.info;
-
-        Toastify({
-            text: message,
-            ...DEFAULT_TOAST_CONFIG,
-            style: {
-                ...DEFAULT_TOAST_CONFIG.style,
-                background,
-            },
-        }).showToast();
-    }
-
-    success(message) {
-        this.show(message, 'success');
-    }
-
-    error(message) {
-        this.show(message, 'error');
-    }
-
-    warning(message) {
-        this.show(message, 'warning');
-    }
-
-    info(message) {
-        this.show(message, 'info');
-    }
+export function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
 }
 
-/**
- * AJAX utility with CSRF token handling and timeout
- */
-export class Ajax {
-    constructor(csrfToken) {
-        this.csrfToken = csrfToken;
-    }
-
-    async request(url, options = {}) {
-        const defaults = {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-        };
-
-        const config = {
-            ...defaults,
-            ...options,
-            headers: { ...defaults.headers, ...(options.headers || {}) },
-        };
-
-        if (config.method.toUpperCase() !== 'GET') {
-            config.headers['X-CSRF-TOKEN'] = this.csrfToken;
-        }
-
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 10000);
-        config.signal = controller.signal;
-
-        try {
-            const response = await fetch(url, config);
-            clearTimeout(timeout);
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status} - ${response.statusText}`);
-            }
-
-            const text = await response.text();
-            return text ? JSON.parse(text) : {};
-        } catch (err) {
-            throw err;
-        }
-    }
+export function debounce(fn, delay = 300) {
+    let t;
+    return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => fn(...args), delay);
+    };
 }
-

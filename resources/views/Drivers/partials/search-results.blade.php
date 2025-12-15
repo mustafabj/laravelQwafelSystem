@@ -1,5 +1,5 @@
 @foreach ($drivers as $driver)
-    <tr data-id="{{ $driver->driverId }}" onclick="App.pages.DriverParcelWizard.DriverStep.selectDriver({{ $driver->driverId }}, App.pages.DriverParcelWizard)">
+    <tr data-id="{{ $driver->driverId }}" style="cursor: pointer;">
         <td class="name">{{ $driver->driverName }}</td>
         <td>{{ $driver->driverPhone }}</td>
         <td>

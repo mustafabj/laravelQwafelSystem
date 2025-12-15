@@ -65,7 +65,7 @@
 
         <!-- Quick Actions -->
         <div class="quick-actions">
-            <a href="{{ route('wizard') }}" class="action-btn action-primary">
+            <a href="{{ route('orderWizard') }}" class="action-btn action-primary">
                 <i class="fas fa-plus-circle"></i>
                 <span>إضافة إرسالية أو تذكرة</span>
             </a>

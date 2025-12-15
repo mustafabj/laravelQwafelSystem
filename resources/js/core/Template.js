@@ -1,55 +1,27 @@
-// resources/js/core/Template.js
-
-export const TemplateManager = {
-    cache: {},
-
-    /**
-     * Load template content by ID from <template id="...">
-     * Returns a fresh DocumentFragment each time.
-     */
-    load(id) {
-        if (this.cache[id]) {
-            return this.cache[id].content.cloneNode(true);
-        }
-
+const Template = {
+    get(id) {
         const tpl = document.getElementById(id);
-
         if (!tpl) {
-            console.error(`[Template] Template not found: #${id}`);
-            return document.createDocumentFragment();
+            console.error(`[Template] Missing template: ${id}`);
+            return null;
         }
-
-        this.cache[id] = tpl;
-        return tpl.content.cloneNode(true);
+        return tpl;
     },
 
-    /**
-     * Render a template directly into a container
-     */
-    render(id, container) {
-        const dom = this.load(id);
-        container.innerHTML = "";
-        container.appendChild(dom);
+    clone(id) {
+        const tpl = this.get(id);
+        return tpl ? tpl.content.firstElementChild.cloneNode(true) : null;
     },
 
-    /**
-     * Clone template and return the first element inside it
-     * (useful for rows/items)
-     */
-    cloneRoot(id) {
-        const fragment = this.load(id);
-        return fragment.firstElementChild
-            ? fragment.firstElementChild
-            : null;
-    },
-
-    /**
-     * Append a template fragment into a container
-     */
-    append(id, container) {
-        const dom = this.load(id);
-        container.appendChild(dom);
+    fill(el, data = {}) {
+        Object.entries(data).forEach(([key, value]) => {
+            const target = el.querySelector(`[data-bind="${key}"]`);
+            if (target) {
+                target.textContent = value;
+            }
+        });
+        return el;
     }
 };
 
-export default TemplateManager;
+export default Template;

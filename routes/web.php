@@ -30,7 +30,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/Tickets/show', [TicketController::class, 'show'])
         ->name('ticket.show');
     // Order
-    Route::get('/parcels-tickets', [OrdersController::class, 'index'])->name('wizard');
+    Route::get('/parcels-tickets', [OrdersController::class, 'index'])->name('orderWizard');
     Route::post('/get-customers', [CustomerController::class, 'getCustomers'])->name('getCustomers');
     Route::post('/get-customer', [CustomerController::class, 'getCustomer'])->name('getCustomer');
     Route::post('/get-phone-item', [CustomerController::class, 'getPhoneItem'])->name('getPhoneItem');

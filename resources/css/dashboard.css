@@ -322,11 +322,6 @@
         flex-direction: column;
     }
 
-    .search-box {
-        width: 100%;
-        min-width: 100%;
-    }
-
     .filter-buttons {
         width: 100%;
         justify-content: space-between;
