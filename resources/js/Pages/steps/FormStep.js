@@ -574,10 +574,11 @@ App.pages.OrderWizard.FormStep = {
                 App.utils.showToast(res.message || "فشل حفظ الارسالية", "error");
             }
         } catch (err) {
+            // Validation errors are already shown by App.utils.ajax
+            // Only log to console in debug mode
             if (App.config?.debug) {
                 console.error('[FormStep] Failed to submit parcel form:', err);
             }
-            App.utils.showToast("فشل حفظ الارسالية", "error");
         } finally {
             if (submitBtn) {
                 submitBtn.disabled = false;
@@ -658,10 +659,11 @@ App.pages.OrderWizard.FormStep = {
                 App.utils.showToast(res.message || "فشل حفظ التذكرة", "error");
             }
         } catch (err) {
+            // Validation errors are already shown by App.utils.ajax
+            // Only log to console in debug mode
             if (App.config?.debug) {
                 console.error('[FormStep] Failed to submit ticket form:', err);
             }
-            App.utils.showToast("فشل حفظ التذكرة", "error");
         } finally {
             if (submitBtn) {
                 submitBtn.disabled = false;

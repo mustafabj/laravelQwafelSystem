@@ -12,18 +12,18 @@
                 <button type="button" class="btn-decrease-quantity" data-detail-id="" title="تقليل الكمية">
                     <i class="fas fa-minus"></i>
                 </button>
-                <input type="number" 
-                       class="quantity-edit-input" 
-                       min="1" 
+        <input type="number"
+            class="quantity-edit-input"
+            min="1"
                        value="1"
-                       data-detail-id="">
+            data-detail-id="">
                 <button type="button" class="btn-increase-quantity" data-detail-id="" title="زيادة الكمية">
                     <i class="fas fa-plus"></i>
                 </button>
             </div>
             <button type="button" class="btn-remove-parcel" data-detail-id="" title="حذف">
                 <i class="fas fa-times"></i>
-            </button>
+        </button>
         </div>
     </div>
 </template>

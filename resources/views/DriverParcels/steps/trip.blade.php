@@ -1,7 +1,7 @@
 <div id="step-trip" class="trip tab">
                 <div class="step-header">
                     <h2 class="step-title">
-                        <span class="step-icon">🚌</span>
+                        <span class="step-icon"><i class="fas fa-bus"></i></span>
                         اختيار الرحلة
                     </h2>
                     <p class="step-description">اختر الرحلة المرتبطة بهذه الإرسالية</p>

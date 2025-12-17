@@ -350,10 +350,11 @@ App.pages.OrderWizard.CustomerStep = {
                 App.utils.showToast("فشل اضافة العميل", "error");
             }
         } catch (err) {
+            // Validation errors are already shown by App.utils.ajax
+            // Only log to console in debug mode
             if (App.config?.debug) {
                 console.error('[CustomerStep] Failed to submit customer form:', err);
             }
-            App.utils.showToast("فشل اضافة العميل", "error");
         } finally {
             // Re-enable submit button
             if (submitBtn) {

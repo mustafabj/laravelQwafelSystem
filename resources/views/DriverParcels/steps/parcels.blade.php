@@ -3,7 +3,7 @@
     {{-- ================= HEADER ================= --}}
     <div class="step-header">
         <h2 class="step-title">
-            <span class="step-icon">📦</span>
+            <span class="step-icon"><i class="fas fa-boxes"></i></span>
             اختيار الإرساليات
         </h2>
         <p class="step-description">

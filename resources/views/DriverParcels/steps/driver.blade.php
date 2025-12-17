@@ -1,7 +1,7 @@
 <div id="step-driver" class="driver tab active">
                 <div class="step-header">
                     <h2 class="step-title">
-                        <span class="step-icon">👤</span>
+                        <span class="step-icon"><i class="fas fa-user-tie"></i></span>
                         تحديد السائق
                     </h2>
                     <p class="step-description">ابحث عن السائق أو أضف سائقاً جديداً</p>

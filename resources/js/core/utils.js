@@ -74,7 +74,27 @@ export async function request(url, { method = 'GET', data = null, timeout = 1000
         const json = text ? JSON.parse(text) : {};
 
         if (!res.ok) {
-            throw new Error(json.message || `HTTP ${res.status}`);
+            // Handle Laravel validation errors (422)
+            if (res.status === 422 && json.errors) {
+                // Display all validation errors as toasts
+                const errorMessages = Object.values(json.errors).flat();
+                errorMessages.forEach((msg, index) => {
+                    // Stagger toasts slightly so they don't overlap
+                    setTimeout(() => {
+                        toast(msg, 'error');
+                    }, index * 100);
+                });
+                throw new Error(json.message || 'فشل التحقق من صحة البيانات');
+            } else if (json.message) {
+                // Display general error message
+                toast(json.message, 'error');
+                throw new Error(json.message);
+            } else {
+                // Fallback error message
+                const errorMsg = `خطأ: ${res.status}`;
+                toast(errorMsg, 'error');
+                throw new Error(errorMsg);
+            }
         }
 
         return json;

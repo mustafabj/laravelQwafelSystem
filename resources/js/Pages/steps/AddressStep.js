@@ -371,7 +371,11 @@ App.pages.OrderWizard.AddressStep = {
                 App.utils.showToast("فشل إضافة العنوان", "error");
             }
         } catch (err) {
-            App.utils.showToast("فشل إضافة العنوان", "error");
+            // Validation errors are already shown by App.utils.ajax
+            // Only log to console in debug mode
+            if (App.config?.debug) {
+                console.error('[AddressStep] Failed to add address:', err);
+            }
         }
     },
 
@@ -422,7 +426,11 @@ App.pages.OrderWizard.AddressStep = {
                 App.utils.showToast("فشل تعديل العنوان", "error");
             }
         } catch (err) {
-            App.utils.showToast("فشل تعديل العنوان", "error");
+            // Validation errors are already shown by App.utils.ajax
+            // Only log to console in debug mode
+            if (App.config?.debug) {
+                console.error('[AddressStep] Failed to update address:', err);
+            }
         }
     },
 };

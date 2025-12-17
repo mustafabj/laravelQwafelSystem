@@ -28,7 +28,7 @@ class DriverParcelWizard extends BaseWizard {
         DriverStep.init(this);
         TripStep.init(this);
         InfoStep.init(this);
-        ParcelsStep.init(this);
+        ParcelsStep.init(this);    
         // Attach ParcelsStep to App for access in canGoNext and submit
         App.pages.DriverParcelWizard.ParcelsStep = ParcelsStep;
         this.bindSubmit();
@@ -102,13 +102,13 @@ class DriverParcelWizard extends BaseWizard {
 
     async submit() {
         try {
-            const data = Object.fromEntries(new FormData(this.form));
-            data.parcelDetails =
-                App.pages.DriverParcelWizard.ParcelsStep.getSelected();
+        const data = Object.fromEntries(new FormData(this.form));
+        data.parcelDetails =
+            App.pages.DriverParcelWizard.ParcelsStep.getSelected();
 
-            const res = await Network.post(this.form.action, data);
-            toast(res.message || 'تم الحفظ', 'success');
-            location.href = '/driver-parcels';
+        const res = await Network.post(this.form.action, data);
+        toast(res.message || 'تم الحفظ', 'success');
+        location.href = '/driver-parcels';
         } catch (error) {
             // Error is already shown by Network.post via toast
             // Don't redirect on error

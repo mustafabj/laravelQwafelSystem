@@ -22,7 +22,7 @@ class StoreDriverParcelRequest extends FormRequest
         return [
             'parcelNumber' => ['required', 'integer'],
             'tripId' => ['required', 'exists:trips,tripId'],
-            'tripDate' => ['required', 'date'],
+            'tripDate' => ['required', 'date', 'after_or_equal:today'],
             'driverName' => ['required', 'string', 'max:255'],
             'driverNumber' => ['required', 'string', 'max:25'],
             'sendTo' => ['required', 'string', 'max:255'],
@@ -48,6 +48,7 @@ class StoreDriverParcelRequest extends FormRequest
             'tripId.exists' => 'الرحلة المحددة غير موجودة',
             'tripDate.required' => 'تاريخ الرحلة مطلوب',
             'tripDate.date' => 'تاريخ الرحلة غير صحيح',
+            'tripDate.after_or_equal' => 'لا يمكن اختيار تاريخ رحلة سابق لليوم',
             'driverName.required' => 'اسم السائق مطلوب',
             'driverNumber.required' => 'رقم السائق مطلوب',
             'sendTo.required' => 'عنوان الإرسال مطلوب',

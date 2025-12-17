@@ -17,32 +17,32 @@
         <ul>
             <li class="active" data-step="0">
                 <span class="step-number">1</span>
-                <img src="{{ asset('image/user2.png') }}" alt="user" />
+                <i class="fas fa-user"></i>
                 <span class="step-label">تحديد العميل</span>
             </li>
             <li data-step="1">
                 <span class="step-number">2</span>
-                <img src="{{ asset('image/phone-call.png') }}" alt="phone" />
+                <i class="fas fa-phone"></i>
                 <span class="step-label">تحديد رقم الهاتف</span>
             </li>
             <li data-step="2">
                 <span class="step-number">3</span>
-                <img src="{{ asset('image/pin.png') }}" alt="pin" />
+                <i class="fas fa-map-marker-alt"></i>
                 <span class="step-label">تحديد العنوان</span>
             </li>
             <li data-step="3">
                 <span class="step-number">4</span>
-                <img src="{{ asset('image/box.png') }}" alt="box" />
+                <i class="fas fa-box"></i>
                 <span class="step-label">ارساليات او سفريات</span>
             </li>
             <li data-step="4">
                 <span class="step-number">5</span>
-                <img src="{{ asset('image/contact-form.png') }}" alt="contact" />
+                <i class="fas fa-edit"></i>
                 <span class="step-label">انهاء الطلب</span>
             </li>
             <li data-step="5">
                 <span class="step-number">6</span>
-                <img src="{{ asset('image/printer.png') }}" alt="printer" />
+                <i class="fas fa-print"></i>
                 <span class="step-label">الطباعة</span>
             </li>
         </ul>
@@ -54,7 +54,7 @@
     <div id="step-customer" class="customer tab active">
         <div class="step-header">
             <h2 class="step-title">
-                <span class="step-icon">👤</span>
+                <span class="step-icon"><i class="fas fa-user"></i></span>
                 تحديد العميل
             </h2>
             <p class="step-description">ابحث عن العميل أو أضف عميلاً جديداً</p>
@@ -66,7 +66,7 @@
     <div id="step-phone" class="phone tab">
         <div class="step-header">
             <h2 class="step-title">
-                <span class="step-icon">📞</span>
+                <span class="step-icon"><i class="fas fa-phone"></i></span>
                 تحديد رقم الهاتف
             </h2>
             <p class="step-description">اختر أو أضف رقم هاتف للعميل</p>
@@ -87,7 +87,7 @@
         <div class="step-header d-flex justify-content-between align-items-center">
             <div>
                 <h2 class="step-title">
-                    <span class="step-icon">📍</span>
+                    <span class="step-icon"><i class="fas fa-map-marker-alt"></i></span>
                     تحديد العنوان
                 </h2>
                 <p class="step-description">اختر عنوان التوصيل أو حدد من المكتب</p>
@@ -122,7 +122,7 @@
     <div id="step-type" class="packages tab">
         <div class="step-header">
             <h2 class="step-title">
-                <span class="step-icon">📦</span>
+                <span class="step-icon"><i class="fas fa-box"></i></span>
                 ارساليات او سفريات
             </h2>
             <p class="step-description">اختر نوع الطلب الذي تريد إنشاءه</p>
@@ -148,7 +148,7 @@
     <div id="step-form" class="formS tab">
         <div class="step-header">
             <h2 class="step-title">
-                <span class="step-icon">📝</span>
+                <span class="step-icon"><i class="fas fa-edit"></i></span>
                 انهاء الطلب
             </h2>
             <p class="step-description">أكمل تفاصيل الطلب وأرسله</p>
@@ -180,7 +180,7 @@
     <div id="step-print" class="formS tab print">
         <div class="step-header">
             <h2 class="step-title">
-                <span class="step-icon">🖨️</span>
+                <span class="step-icon"><i class="fas fa-print"></i></span>
                 الطباعة
             </h2>
             <p class="step-description">تم حفظ الطلب بنجاح. يمكنك طباعته الآن</p>
@@ -217,13 +217,13 @@
         <div class="customer-modal-content">
             <div class="customer-modal-section">
                 <h3 class="section-title">
-                    <span class="section-icon">👤</span>
+                    <span class="section-icon"><i class="fas fa-user"></i></span>
                     معلومات العميل
                 </h3>
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="FName">
-                            <span class="label-icon">👤</span>
+                            <span class="label-icon"><i class="fas fa-user"></i></span>
                             الاسم الاول
                             <span class="text-danger">*</span>
                         </label>
@@ -231,7 +231,7 @@
                     </div>
                     <div class="form-group">
                         <label for="LName">
-                            <span class="label-icon">👤</span>
+                            <span class="label-icon"><i class="fas fa-user"></i></span>
                             الاسم الثاني
                             <span class="text-danger">*</span>
                         </label>
@@ -239,21 +239,21 @@
                     </div>
                     <div class="form-group">
                         <label for="passport">
-                            <span class="label-icon">🛂</span>
+                            <span class="label-icon"><i class="fas fa-passport"></i></span>
                             رقم جواز السفر
                         </label>
                         <input type="text" name="passport" id="passport" placeholder="أدخل رقم جواز السفر">
                     </div>
                     <div class="form-group">
                         <label for="custState">
-                            <span class="label-icon">📋</span>
+                            <span class="label-icon"><i class="fas fa-clipboard-list"></i></span>
                             حالة العميل
                         </label>
                         <input type="text" name="custState" id="custState" placeholder="أدخل حالة العميل">
                     </div>
                     <div class="form-group form-group-full">
                         <label for="phoneNumber">
-                            <span class="label-icon">📱</span>
+                            <span class="label-icon"><i class="fas fa-mobile-alt"></i></span>
                             رقم الهاتف
                             <span class="text-danger">*</span>
                         </label>
@@ -263,41 +263,41 @@
             </div>
             <div class="customer-modal-section">
                 <h3 class="section-title">
-                    <span class="section-icon">📍</span>
+                    <span class="section-icon"><i class="fas fa-map-marker-alt"></i></span>
                     عنوان العميل
                 </h3>
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="city">
-                            <span class="label-icon">🏙️</span>
+                            <span class="label-icon"><i class="fas fa-city"></i></span>
                             المدينة
                         </label>
                         <input type="text" name="city" id="city" placeholder="أدخل المدينة">
                     </div>
                     <div class="form-group">
                         <label for="aria">
-                            <span class="label-icon">🗺️</span>
+                            <span class="label-icon"><i class="fas fa-map"></i></span>
                             المنطقة
                         </label>
                         <input type="text" name="aria" id="aria" placeholder="أدخل المنطقة">
                     </div>
                     <div class="form-group">
                         <label for="streetName">
-                            <span class="label-icon">🛣️</span>
+                            <span class="label-icon"><i class="fas fa-road"></i></span>
                             اسم الشارع
                         </label>
                         <input type="text" name="streetName" id="streetName" placeholder="أدخل اسم الشارع">
                     </div>
                     <div class="form-group">
                         <label for="buildingNumber">
-                            <span class="label-icon">🏢</span>
+                            <span class="label-icon"><i class="fas fa-building"></i></span>
                             رقم المبنى
                         </label>
                         <input type="text" name="buildingNumber" id="buildingNumber" placeholder="أدخل رقم المبنى">
                     </div>
                     <div class="form-group form-group-full">
                         <label for="descAddress">
-                            <span class="label-icon">📝</span>
+                            <span class="label-icon"><i class="fas fa-comment-dots"></i></span>
                             معلومات اضافية
                         </label>
                         <textarea name="descAddress" id="descAddress" rows="4" placeholder="أدخل معلومات اضافية (اختياري)"></textarea>

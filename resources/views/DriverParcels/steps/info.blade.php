@@ -1,7 +1,7 @@
             <div id="step-info" class="info tab">
                 <div class="step-header">
                     <h2 class="step-title">
-                        <span class="step-icon">📋</span>
+                        <span class="step-icon"><i class="fas fa-clipboard-list"></i></span>
                         المعلومات الأساسية والمالية
                     </h2>
                     <p class="step-description">أكمل المعلومات الأساسية والمالية للإرسالية</p>

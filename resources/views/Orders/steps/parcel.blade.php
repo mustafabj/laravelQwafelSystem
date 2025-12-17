@@ -1,97 +1,93 @@
 <div class="parcel-form-container">
-    <h1 class="form-title">
-        <span class="form-icon">📦</span>
-        ارسالية شحن
-    </h1>
-
     <form id="saveParcel" class="parcel-form">
         {{-- Sender Information (Readonly) --}}
-        <div class="form-section sender-section">
-            <div class="section-header">
-                <h3 class="section-title">
-                    <span class="section-icon">👤</span>
-                    معلومات المرسل
-                </h3>
-                <span class="section-badge readonly-badge">معلومات جاهزة</span>
+        <div class="d-flex gap-3">
+            <div class="form-section sender-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <span class="section-icon"><i class="fas fa-user"></i></span>
+                        معلومات المرسل
+                    </h3>
+                    <span class="section-badge readonly-badge">معلومات جاهزة</span>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="parcelid">
+                            <span class="label-icon"><i class="fas fa-hashtag"></i></span>
+                            رقم الارسالية
+                        </label>
+                        <input type="text" name="parcelid" id="parcelid" value="{{ $nextParcelNumber }}" readonly class="readonly-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="nameS">
+                            <span class="label-icon"><i class="fas fa-user"></i></span>
+                            اسم المرسل
+                        </label>
+                        <input type="text" name="nameS" id="nameS" readonly class="readonly-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="phoneS">
+                            <span class="label-icon"><i class="fas fa-mobile-alt"></i></span>
+                            هاتف المرسل
+                        </label>
+                        <input type="text" name="phoneS" id="phoneS" readonly class="readonly-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="date">
+                            <span class="label-icon"><i class="fas fa-calendar-alt"></i></span>
+                            التاريخ
+                        </label>
+                        <input type="text" name="date" id="date" readonly class="readonly-input">
+                    </div>
+                </div>
             </div>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="parcelid">
-                        <span class="label-icon">🔢</span>
-                        رقم الارسالية
-                    </label>
-                    <input type="text" name="parcelid" id="parcelid" value="{{ $nextParcelNumber }}" readonly class="readonly-input">
+            {{-- Recipient Information --}}
+            <div class="form-section recipient-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <span class="section-icon"><i class="fas fa-map-marker-alt"></i></span>
+                        معلومات المرسل اليه
+                    </h3>
+                    <span class="section-badge required-badge">مطلوب</span>
                 </div>
-                <div class="form-group">
-                    <label for="nameS">
-                        <span class="label-icon">👤</span>
-                        اسم المرسل
-                    </label>
-                    <input type="text" name="nameS" id="nameS" readonly class="readonly-input">
-                </div>
-                <div class="form-group">
-                    <label for="phoneS">
-                        <span class="label-icon">📱</span>
-                        هاتف المرسل
-                    </label>
-                    <input type="text" name="phoneS" id="phoneS" readonly class="readonly-input">
-                </div>
-                <div class="form-group">
-                    <label for="date">
-                        <span class="label-icon">📅</span>
-                        التاريخ
-                    </label>
-                    <input type="text" name="date" id="date" readonly class="readonly-input">
-                </div>
-            </div>
-        </div>
-
-        {{-- Recipient Information --}}
-        <div class="form-section recipient-section">
-            <div class="section-header">
-                <h3 class="section-title">
-                    <span class="section-icon">📍</span>
-                    معلومات المرسل اليه
-                </h3>
-                <span class="section-badge required-badge">مطلوب</span>
-            </div>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="nameST">
-                        <span class="label-icon">👤</span>
-                        اسم المرسل اليه
-                        <span class="text-danger">*</span>
-                    </label>
-                    <input type="text" name="nameST" id="nameST" required placeholder="أدخل اسم المرسل اليه">
-                </div>
-                <div class="form-group">
-                    <label for="phoneST">
-                        <span class="label-icon">📱</span>
-                        هاتف المرسل اليه
-                        <span class="text-danger">*</span>
-                    </label>
-                    <input type="text" name="phoneST" id="phoneST" required placeholder="أدخل رقم الهاتف">
-                </div>
-                <div class="form-group">
-                    <label for="officeST">
-                        <span class="label-icon">🏢</span>
-                        المكتب المرسل اليه
-                        <span class="text-danger">*</span>
-                    </label>
-                    <select name="officeST" id="officeST" class="form-select" required>
-                        <option value="">اختر المكتب</option>
-                        @foreach($offices as $office)
-                            <option value="{{ $office->officeId }}">{{ $office->officeName }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="form-group form-group-full">
-                    <label for="addressST">
-                        <span class="label-icon">🏠</span>
-                        المكان المرسل اليه
-                        <span class="text-danger">*</span>
-                    </label>
-                    <input type="text" name="addressST" id="addressST" required placeholder="أدخل العنوان الكامل">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="nameST">
+                            <span class="label-icon"><i class="fas fa-user"></i></span>
+                            اسم المرسل اليه
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" name="nameST" id="nameST" required placeholder="أدخل اسم المرسل اليه">
+                    </div>
+                    <div class="form-group">
+                        <label for="phoneST">
+                            <span class="label-icon"><i class="fas fa-mobile-alt"></i></span>
+                            هاتف المرسل اليه
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" name="phoneST" id="phoneST" required placeholder="أدخل رقم الهاتف">
+                    </div>
+                    <div class="form-group">
+                        <label for="officeST">
+                            <span class="label-icon"><i class="fas fa-building"></i></span>
+                            المكتب المرسل اليه
+                            <span class="text-danger">*</span>
+                        </label>
+                        <select name="officeST" id="officeST" class="form-select" required>
+                            <option value="">اختر المكتب</option>
+                            @foreach($offices as $office)
+                                <option value="{{ $office->officeId }}">{{ $office->officeName }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="form-group form-group-full">
+                        <label for="addressST">
+                            <span class="label-icon"><i class="fas fa-home"></i></span>
+                            المكان المرسل اليه
+                            <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" name="addressST" id="addressST" required placeholder="أدخل العنوان الكامل">
+                    </div>
                 </div>
             </div>
         </div>
@@ -100,14 +96,14 @@
         <div class="form-section payment-section">
             <div class="section-header">
                 <h3 class="section-title">
-                    <span class="section-icon">💳</span>
+                    <span class="section-icon"><i class="fas fa-credit-card"></i></span>
                     معلومات الدفع
                 </h3>
             </div>
             <div class="payment-fields-grid">
                 <div class="form-group payment-amount-group">
                     <label for="cost">
-                        <span class="label-icon">💰</span>
+                        <span class="label-icon"><i class="fas fa-dollar-sign"></i></span>
                         الرسوم
                         <span class="text-danger">*</span>
                     </label>
@@ -115,7 +111,7 @@
                 </div>
                 <div class="form-group payment-select-group">
                     <label for="currency">
-                        <span class="label-icon">💱</span>
+                        <span class="label-icon"><i class="fas fa-exchange-alt"></i></span>
                         العملة
                     </label>
                     <select name="currency" id="currency" class="currency-select">
@@ -128,7 +124,7 @@
                 </div>
                 <div class="form-group payment-select-group">
                     <label for="paymentPaid">
-                        <span class="label-icon">✅</span>
+                        <span class="label-icon"><i class="fas fa-check-circle"></i></span>
                         حالة الدفع
                     </label>
                     <select name="paid" id="paymentPaid" class="currency-select">
@@ -139,7 +135,7 @@
                 </div>
                 <div class="form-group payment-select-group">
                     <label for="paymentMethod">
-                        <span class="label-icon">💳</span>
+                        <span class="label-icon"><i class="fas fa-wallet"></i></span>
                         طريقة الدفع
                     </label>
                     <select name="paidMethod" id="paymentMethod" class="currency-select">
@@ -151,7 +147,7 @@
             <div class="form-row hidden" id="paymentPks">
                 <div class="form-group form-group-half">
                     <label for="costRest">
-                        <span class="label-icon">💵</span>
+                        <span class="label-icon"><i class="fas fa-money-bill-wave"></i></span>
                         واصل
                     </label>
                     <div class="currency-price-group">
@@ -162,7 +158,7 @@
                 <div class="form-group form-group-half">
                     <label class="toggle-container">
                         <span class="toggle-label">
-                            <span class="label-icon">🏢</span>
+                            <span class="label-icon"><i class="fas fa-building"></i></span>
                             الدفع في {{ $currentOffice->officeName }}
                         </span>
                         <input type="checkbox" name="paidInMainOffice" id="paidInMainOffice" class="toggle-checkbox">
@@ -177,14 +173,14 @@
         <div class="form-section packages-section">
             <div class="section-header">
                 <h3 class="section-title">
-                    <span class="section-icon">📦</span>
+                    <span class="section-icon"><i class="fas fa-box"></i></span>
                     أصناف الارسالية
                 </h3>
             </div>
             <div class="package-quantity-selector">
                 <div class="form-group">
                     <label for="packagequnt">
-                        <span class="label-icon">🔢</span>
+                        <span class="label-icon"><i class="fas fa-hashtag"></i></span>
                         عدد الاصناف
                     </label>
                     <select name="packagequnt" id="packagequnt" class="form-select package-quantity-select">
@@ -194,7 +190,7 @@
                     </select>
                 </div>
                 <button type="button" class="btn-add-package" id="addPackageBtn">
-                    <span class="btn-icon">➕</span>
+                    <span class="btn-icon"><i class="fas fa-plus"></i></span>
                     إضافة صنف
                 </button>
             </div>
@@ -206,21 +202,21 @@
                     <div class="package-content">
                         <div class="form-group">
                             <label for="qun1">
-                                <span class="label-icon">🔢</span>
+                                <span class="label-icon"><i class="fas fa-hashtag"></i></span>
                                 العدد
                             </label>
                             <input type="number" name="qun[]" id="qun1" class="qun-input" min="1" value="1" placeholder="1">
                         </div>
                         <div class="form-group form-group-full">
                             <label for="desc1">
-                                <span class="label-icon">📝</span>
+                                <span class="label-icon"><i class="fas fa-comment-dots"></i></span>
                                 الوصف
                             </label>
                             <textarea name="desc[]" id="desc1" class="desc-input" rows="4" placeholder="أدخل وصف الصنف..."></textarea>
                         </div>
                     </div>
                     <button type="button" class="btn-delete-package" onclick="deletePackage(this)">
-                        <span class="btn-icon">🗑️</span>
+                        <span class="btn-icon"><i class="fas fa-trash"></i></span>
                         حذف
                     </button>
                 </div>
