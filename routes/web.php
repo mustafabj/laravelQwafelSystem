@@ -29,6 +29,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/fetch-last-tickets', [TicketController::class, 'fetchLastTickets'])->name('fetch-last-tickets');
     Route::post('/Tickets/show', [TicketController::class, 'show'])
         ->name('ticket.show');
+    Route::get('/print-ticket/{id}', [TicketController::class, 'print'])->name('ticket.print');
     // Order
     Route::get('/parcels-tickets', [OrdersController::class, 'index'])->name('orderWizard');
     Route::post('/get-customers', [CustomerController::class, 'getCustomers'])->name('getCustomers');
@@ -53,6 +54,7 @@ Route::middleware('auth')->group(function () {
 
     // Driver Parcels
     Route::resource('driver-parcels', DriverParcelController::class);
+    Route::get('/driver-parcels/{id}/print', [DriverParcelController::class, 'print'])->name('driver-parcels.print');
     Route::post('/driver-parcels/search-parcel-details', [DriverParcelController::class, 'searchParcelDetails'])->name('driver-parcels.search-parcel-details');
     Route::post('/driver-parcels/{id}/update-item-status', [DriverParcelController::class, 'updateItemStatus'])->name('driver-parcels.update-item-status');
     Route::post('/driver-parcels/{id}/update-status', [DriverParcelController::class, 'updateStatus'])->name('driver-parcels.update-status');

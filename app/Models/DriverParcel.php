@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class DriverParcel extends Model
 {
@@ -187,41 +188,83 @@ class DriverParcel extends Model
      */
     public static function createWithDetails(array $data, $user, array $parcelDetails): self
     {
-        $driverParcel = self::create([
-            'parcelNumber' => $data['parcelNumber'],
-            'tripId' => $data['tripId'],
-            'tripDate' => $data['tripDate'],
-            'driverName' => $data['driverName'],
-            'driverNumber' => $data['driverNumber'],
-            'sendTo' => $data['sendTo'],
-            'officeId' => $data['officeId'],
-            'parcelDate' => now()->format('Y-m-d H:i:s'),
-            'cost' => $data['cost'] ?? 0,
-            'paid' => $data['paid'] ?? 0,
-            'costRest' => $data['costRest'] ?? 0,
-            'currency' => $data['currency'] ?? 'IQD',
-            'userId' => $user->id,
-            'status' => 'pending',
-        ]);
+        return DB::transaction(function () use ($data, $user, $parcelDetails) {
+            // Create driver parcel
+            $driverParcel = self::create([
+                'parcelNumber' => $data['parcelNumber'],
+                'tripId' => $data['tripId'],
+                'tripDate' => $data['tripDate'],
+                'driverName' => $data['driverName'],
+                'driverNumber' => $data['driverNumber'],
+                'sendTo' => $data['sendTo'],
+                'officeId' => $data['officeId'],
+                'parcelDate' => now()->format('Y-m-d H:i:s'),
+                'cost' => $data['cost'] ?? 0,
+                'paid' => $data['paid'] ?? 0,
+                'costRest' => $data['costRest'] ?? 0,
+                'currency' => $data['currency'] ?? 'IQD',
+                'userId' => $user->id,
+                'status' => 'pending',
+            ]);
 
-        foreach ($parcelDetails as $detailData) {
-            $parcelDetail = ParcelDetail::findById($detailData['parcelDetailId']);
+            // Load all parcel details in one query
+            $parcelDetailIds = array_column($parcelDetails, 'parcelDetailId');
+            $parcelDetailsMap = ParcelDetail::whereIn('detailId', $parcelDetailIds)
+                ->get()
+                ->keyBy('detailId');
 
-            if (! $parcelDetail->hasAvailableQuantity($detailData['quantityTaken'])) {
-                throw new \Exception("الكمية المطلوبة ({$detailData['quantityTaken']}) تتجاوز الكمية المتاحة ({$parcelDetail->getAvailableQuantity()})");
+            // Batch check available quantities efficiently
+            $assignedQuantities = DriverParcelDetail::whereIn('parcelDetailId', $parcelDetailIds)
+                ->whereHas('driverParcel', function ($query) {
+                    $query->whereIn('status', ['pending', 'in_transit']);
+                })
+                ->select('parcelDetailId', DB::raw('SUM(quantityTaken) as totalAssigned'))
+                ->groupBy('parcelDetailId')
+                ->pluck('totalAssigned', 'parcelDetailId')
+                ->toArray();
+
+            // Prepare batch insert data and track quantities being added in this request
+            $driverParcelDetailsData = [];
+            $processedQuantities = []; // Track quantities processed in this loop
+
+            foreach ($parcelDetails as $detailData) {
+                $parcelDetailId = $detailData['parcelDetailId'];
+                $parcelDetail = $parcelDetailsMap->get($parcelDetailId);
+
+                if (! $parcelDetail) {
+                    throw new \Exception("تفاصيل الإرسالية ({$parcelDetailId}) غير موجودة");
+                }
+
+                // Check available quantity efficiently
+                // Account for: already assigned quantities + quantities being processed in this request
+                $assignedQuantity = $assignedQuantities[$parcelDetailId] ?? 0;
+                $processedInRequest = $processedQuantities[$parcelDetailId] ?? 0;
+                $availableQuantity = max(0, $parcelDetail->detailQun - $assignedQuantity - $processedInRequest);
+
+                if ($availableQuantity < $detailData['quantityTaken']) {
+                    throw new \Exception("الكمية المطلوبة ({$detailData['quantityTaken']}) تتجاوز الكمية المتاحة ({$availableQuantity})");
+                }
+
+                // Track this quantity for subsequent items with the same parcelDetailId
+                $processedQuantities[$parcelDetailId] = ($processedQuantities[$parcelDetailId] ?? 0) + $detailData['quantityTaken'];
+
+                $driverParcelDetailsData[] = [
+                    'parcelId' => $driverParcel->parcelId,
+                    'parcelDetailId' => $parcelDetailId,
+                    'quantityTaken' => $detailData['quantityTaken'],
+                    'detailQun' => $detailData['quantityTaken'],
+                    'detailInfo' => $parcelDetail->detailInfo,
+                    'isArrived' => false,
+                ];
             }
 
-            DriverParcelDetail::create([
-                'parcelId' => $driverParcel->parcelId,
-                'parcelDetailId' => $detailData['parcelDetailId'],
-                'quantityTaken' => $detailData['quantityTaken'],
-                'detailQun' => $detailData['quantityTaken'],
-                'detailInfo' => $parcelDetail->detailInfo,
-                'isArrived' => false,
-            ]);
-        }
+            // Batch insert all driver parcel details
+            if (! empty($driverParcelDetailsData)) {
+                DriverParcelDetail::insert($driverParcelDetailsData);
+            }
 
-        return $driverParcel;
+            return $driverParcel;
+        });
     }
 
     /**

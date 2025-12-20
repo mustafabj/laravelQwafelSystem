@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Parcel;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ParcelController extends Controller
@@ -39,7 +39,14 @@ class ParcelController extends Controller
     {
         $id = $request->input('id');
 
-        $parcel = Parcel::withFullRelations()->findOrFail($id);
+        $parcel = Parcel::with([
+            'customer:customerId,FName,LName,customerPassport',
+            'originOffice:officeId,officeName,officeImage',
+            'destinationOffice:officeId,officeName',
+            'details' => function ($query) {
+                $query->select('detailId', 'parcelId', 'detailInfo', 'detailQun');
+            },
+        ])->findOrFail($id);
 
         $user = Auth::user();
 
@@ -78,12 +85,22 @@ class ParcelController extends Controller
     public function fetchLastParcels()
     {
         $parcels = Parcel::orderBy('parcelId', 'desc')->limit(100)->get();
+
         return response()->json($parcels);
     }
-    
+
     public function print($id)
     {
-        $parcel = Parcel::findOrFail($id);
-        return view('Parcels.print', compact('parcel'));
+        $parcel = Parcel::with([
+            'customer',
+            'details',
+            'originOffice',
+            'destinationOffice',
+            'user',
+        ])->findOrFail($id);
+
+        $user = Auth::user();
+
+        return view('Parcels.print', compact('parcel', 'user'));
     }
 }

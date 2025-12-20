@@ -50,15 +50,28 @@
                     </div>
                 </div>
 
+                <div class="trip-content-grid">
+                    <div class="trip-content-left">
                 <div class="trip-schedule">
                     <h4 class="schedule-title">
                         <i class="fas fa-calendar-week"></i>
                         الجدول الزمني
                     </h4>
                     <div class="schedule-days">
+                        @php
+                            $dayTranslations = [
+                                'Sunday' => 'الأحد',
+                                'Monday' => 'الإثنين',
+                                'Tuesday' => 'الثلاثاء',
+                                'Wednesday' => 'الأربعاء',
+                                'Thursday' => 'الخميس',
+                                'Friday' => 'الجمعة',
+                                'Saturday' => 'السبت'
+                            ];
+                        @endphp
                         @foreach ($trip->daysOfWeek as $day)
                             <div class="schedule-day">
-                                <span class="day-name">{{ $day }}</span>
+                                <span class="day-name">{{ $dayTranslations[$day] ?? $day }}</span>
                                 <span class="day-time">
                                     {{ $trip->times[$day] ?? 'غير محدد' }}
                                 </span>
@@ -67,48 +80,52 @@
                     </div>
                 </div>
 
-                @if ($trip->stopPoints && $trip->stopPoints->count() > 0)
-                    <div class="trip-stop-points">
-                        <h4 class="schedule-title">
-                            <i class="fas fa-map-marked-alt"></i>
-                            نقاط التوقف
-                        </h4>
-                        <div class="stop-points-display">
-                            @foreach ($trip->stopPoints as $stopPoint)
-                                <div class="stop-point-display-item">
-                                    <span class="stop-point-name">
-                                        <i class="fas fa-map-marker-alt"></i>
-                                        {{ $stopPoint->stopName }}
-                                    </span>
-                                    <span class="stop-point-time">
-                                        <i class="fas fa-clock"></i>
-                                        {{ \Carbon\Carbon::parse($stopPoint->arrivalTime)->format('H:i') }}
-                                    </span>
+                        @if ($trip->stopPoints && $trip->stopPoints->count() > 0)
+                            <div class="trip-stop-points">
+                                <h4 class="schedule-title">
+                                    <i class="fas fa-map-marked-alt"></i>
+                                    نقاط التوقف
+                                </h4>
+                                <div class="stop-points-display">
+                                    @foreach ($trip->stopPoints as $stopPoint)
+                                        <div class="stop-point-display-item">
+                                            <span class="stop-point-name">
+                                                <i class="fas fa-map-marker-alt"></i>
+                                                {{ $stopPoint->stopName }}
+                                            </span>
+                                            <span class="stop-point-time">
+                                                <i class="fas fa-clock"></i>
+                                                {{ \Carbon\Carbon::parse($stopPoint->arrivalTime)->format('H:i') }}
+                                            </span>
+                                        </div>
+                                    @endforeach
                                 </div>
-                            @endforeach
-                        </div>
+                            </div>
+                        @endif
                     </div>
-                @endif
 
-                @if ($trip->finalArrivalTime)
-                    <div class="trip-final-arrival">
-                        <h4 class="schedule-title">
-                            <i class="fas fa-flag-checkered"></i>
-                            وقت الوصول النهائي
-                        </h4>
-                        <div class="final-arrival-time-display">
-                            <i class="fas fa-clock"></i>
-                            {{ \Carbon\Carbon::parse($trip->finalArrivalTime)->format('H:i') }}
-                        </div>
-                    </div>
-                @endif
+                    <div class="trip-content-right">
+                        @if ($trip->finalArrivalTime)
+                            <div class="trip-final-arrival">
+                                <h4 class="schedule-title">
+                                    <i class="fas fa-flag-checkered"></i>
+                                    وقت الوصول النهائي
+                                </h4>
+                                <div class="final-arrival-time-display">
+                                    <i class="fas fa-clock"></i>
+                                    {{ \Carbon\Carbon::parse($trip->finalArrivalTime)->format('H:i') }}
+                                </div>
+                            </div>
+                        @endif
 
-                @if ($trip->notes)
-                    <div class="trip-notes">
-                        <strong>ملاحظات:</strong>
-                        <p>{{ $trip->notes }}</p>
+                        @if ($trip->notes)
+                            <div class="trip-notes">
+                                <strong>ملاحظات:</strong>
+                                <p>{{ $trip->notes }}</p>
+                            </div>
+                        @endif
                     </div>
-                @endif
+                </div>
 
                 <div class="trip-footer">
                     <div class="trip-info">

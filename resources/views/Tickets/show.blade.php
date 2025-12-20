@@ -1,157 +1,119 @@
-<div class="formS cust tab print active" id="ticket">
-    <div class="container">
-        <!-- Company Details -->
-        <div class="combanyDetails printFlex">
-            <div class="img">
-                @if(auth()->user()->office && auth()->user()->office->officeImage)
-                    <img src="{{ asset('admin/upload/' . auth()->user()->office->officeImage) }}" 
-                         alt="{{ auth()->user()->office->officeImage }}">
-                @endif
-            </div>
-
-            @include('components.details_title')
-        </div>
-
-        <!-- Buttons Section -->
-        <div class="printBtns">
-            <div class="printBtn printInlineFlex" onclick="window.print()">
-                <img src="{{ asset('image/printing.png') }}" alt="printer" />
-                طباعة
-            </div>
-
+<div class="simple-modal-content">
+    <!-- Header -->
+    <div class="simple-modal-header">
+        <h2>تذكرة سفر - رقم {{ $ticket->tecketNumber }}</h2>
+        <div class="simple-modal-actions noPrint">
+            <a href="{{ route('ticket.print', $ticket->ticketId) }}" target="_blank" class="btn btn-primary btn-sm">
+                <i class="fas fa-print"></i> طباعة
+            </a>
             @if($ticket->accept === 'no' && $ticket->userId != auth()->id())
-                <div class="printBtn printInlineFlex" onclick="acceptticket({{ $ticket->ticketId }})">
-                    <img src="{{ asset('image/accept.png') }}" alt="accept" />
-                    قبول
-                </div>
+                <button class="btn btn-success btn-sm" onclick="acceptticket({{ $ticket->ticketId }})">
+                    <i class="fas fa-check"></i> قبول
+                </button>
             @endif
         </div>
-
-        <h1 class="title">تذكرة سفر</h1>
     </div>
 
-    <div class="container">
-        <form>
-            <!-- Passenger Details -->
-            <div class="top">
-                <div>
-                    <div>
-                        <label>رقم التذكرة :</label>
-                        <input type="text" readonly value="{{ $ticket->tecketNumber }}">
-                    </div>
-                    <div>
-                        <label>اسم المسافر :</label>
-                        <input type="text" readonly value="{{ $ticket->customer->FName }} {{ $ticket->customer->LName }}">
-                    </div>
-                    <div>
-                        <label>هاتف المسافر :</label>
-                        <input type="text" readonly value="{{ $ticket->customer->custNumber }}">
-                    </div>
+    <!-- Content -->
+    <div class="simple-modal-body">
+        <!-- Passenger Information -->
+        <div class="simple-section">
+            <h3 class="simple-section-title">معلومات المسافر</h3>
+            <div class="simple-data-grid">
+                <div class="simple-data-item">
+                    <span class="simple-label">اسم المسافر:</span>
+                    <span class="simple-value">{{ $ticket->customer->FName }} {{ $ticket->customer->LName }}</span>
                 </div>
-
-                <div>
-                    <div>
-                        <label>تاريخ التذكرة :</label>
-                        <input type="text" readonly value="{{ $ticket->ticketDate }}">
-                    </div>
-                    <div>
-                        <label>رقم جواز السفر :</label>
-                        <input type="text" readonly value="{{ $ticket->customer->customerPassport }}">
-                    </div>
+                <div class="simple-data-item">
+                    <span class="simple-label">هاتف المسافر:</span>
+                    <span class="simple-value">{{ $ticket->customer->custNumber }}</span>
+                </div>
+                <div class="simple-data-item">
+                    <span class="simple-label">رقم جواز السفر:</span>
+                    <span class="simple-value">{{ $ticket->customer->customerPassport ?? '-' }}</span>
+                </div>
+                <div class="simple-data-item">
+                    <span class="simple-label">تاريخ التذكرة:</span>
+                    <span class="simple-value">{{ $ticket->ticketDate }}</span>
                 </div>
             </div>
+        </div>
 
-            <!-- Address Section -->
-            @if($ticket->address)
-                <hr class="noPrint">
-                <h2 style="text-align: center;" class="noPrint">عنوان المسافر</h2>
-
-                <div class="top noPrint">
-                    <div>
-                        <div>
-                            <label>المدينة :</label>
-                            <input type="text" readonly value="{{ $ticket->address->city }}">
-                        </div>
-                        <div>
-                            <label>المنطقة :</label>
-                            <input type="text" readonly value="{{ $ticket->address->area }}">
-                        </div>
-                    </div>
-
-                    <div>
-                        <div>
-                            <label>اسم الشارع :</label>
-                            <input type="text" readonly value="{{ $ticket->address->street }}">
-                        </div>
-                        <div>
-                            <label>رقم المبنى :</label>
-                            <input type="text" readonly value="{{ $ticket->address->buildingNumber }}">
-                        </div>
-                    </div>
+        <!-- Travel Information -->
+        <div class="simple-section">
+            <h3 class="simple-section-title">معلومات السفر</h3>
+            <div class="simple-data-grid">
+                <div class="simple-data-item">
+                    <span class="simple-label">تاريخ السفر:</span>
+                    <span class="simple-value">{{ $ticket->travelDate }}</span>
                 </div>
-
-                <div class="top noPrint">
-                    <div>
-                        <div>
-                            <label>معلومات إضافية :</label>
-                            <textarea style="resize: none;" readonly>{{ $ticket->address->info }}</textarea>
-                        </div>
-                    </div>
+                <div class="simple-data-item">
+                    <span class="simple-label">وقت السفر:</span>
+                    <span class="simple-value">{{ $ticket->formatted_time }}</span>
                 </div>
-                <hr class="noPrint">
-            @endif
-
-            <!-- Travel Details -->
-            <div class="top">
-                <div>
-                    <div>
-                        <label>تاريخ السفر :</label>
-                        <input type="text" readonly value="{{ $ticket->travelDate }}">
-                    </div>
-                    <div>
-                        <label>رقم المقعد :</label>
-                        <input type="text" readonly value="{{ $ticket->Seat }}">
-                    </div>
+                <div class="simple-data-item">
+                    <span class="simple-label">رقم المقعد:</span>
+                    <span class="simple-value">{{ $ticket->Seat }}</span>
                 </div>
-
-                <div>
-                    <div>
-                        <label>وقت السفر :</label>
-                        <input type="text" readonly value="{{ $ticket->formatted_time }}">
-                    </div>
-                    <div>
-                        <label>جهة السفر :</label>
-                        <input type="text" readonly value="{{ $ticket->destination }}">
-                    </div>
+                <div class="simple-data-item">
+                    <span class="simple-label">جهة السفر:</span>
+                    <span class="simple-value">{{ $ticket->destination }}</span>
                 </div>
             </div>
+        </div>
 
-            <!-- Payment Section -->
-            <hr>
-            <div class="top">
-                <div>
-                    <div>
-                        <label>سعر التذكرة :</label>
-                        <input type="text" readonly value="{{ $ticket->cost }} {{ $ticket->currency_name }}">
+        <!-- Address Section -->
+        @if($ticket->address)
+            <div class="simple-section noPrint">
+                <h3 class="simple-section-title">عنوان المسافر</h3>
+                <div class="simple-data-grid">
+                    <div class="simple-data-item">
+                        <span class="simple-label">المدينة:</span>
+                        <span class="simple-value">{{ $ticket->address->city }}</span>
                     </div>
-                    <div>
-                        <label>باقي المبلغ غير الواصل :</label>
-                        <input type="text" readonly value="{{ $ticket->unpaid_amount }} {{ $ticket->currency_name }}">
+                    <div class="simple-data-item">
+                        <span class="simple-label">المنطقة:</span>
+                        <span class="simple-value">{{ $ticket->address->area }}</span>
                     </div>
-                </div>
-                <div>
-                    <div>
-                        <label>المبلغ المدفوع :</label>
-                        <input type="text" readonly value="{{ $ticket->costRest }} {{ $ticket->currency_name }}">
+                    <div class="simple-data-item">
+                        <span class="simple-label">اسم الشارع:</span>
+                        <span class="simple-value">{{ $ticket->address->street }}</span>
                     </div>
+                    <div class="simple-data-item">
+                        <span class="simple-label">رقم المبنى:</span>
+                        <span class="simple-value">{{ $ticket->address->buildingNumber }}</span>
+                    </div>
+                    @if($ticket->address->info)
+                        <div class="simple-data-item full-width">
+                            <span class="simple-label">معلومات إضافية:</span>
+                            <span class="simple-value">{{ $ticket->address->info }}</span>
+                        </div>
+                    @endif
                 </div>
             </div>
-        </form>
+        @endif
 
-        <!-- Notes -->
-        <ol class="printOnly" type="1">
-            <li>في حال الغاء موعد السفر يفقد قيمة التذكرة كاملة.</li>
-            <li>يحق لكل راكب شنطة 30 كيلو فقط.</li>
-        </ol>
+        <!-- Payment Information -->
+        <div class="simple-section">
+            <h3 class="simple-section-title">المعلومات المالية</h3>
+            <div class="simple-data-grid">
+                <div class="simple-data-item">
+                    <span class="simple-label">سعر التذكرة:</span>
+                    <span class="simple-value">{{ $ticket->cost }} {{ $ticket->currency_name }}</span>
+                </div>
+                <div class="simple-data-item">
+                    <span class="simple-label">المبلغ المدفوع:</span>
+                    <span class="simple-value">{{ $ticket->costRest }} {{ $ticket->currency_name }}</span>
+                </div>
+                <div class="simple-data-item">
+                    <span class="simple-label">باقي المبلغ:</span>
+                    <span class="simple-value">{{ $ticket->unpaid_amount }} {{ $ticket->currency_name }}</span>
+                </div>
+                <div class="simple-data-item">
+                    <span class="simple-label">حالة الدفع:</span>
+                    <span class="simple-value">{{ $ticket->paid_text }}</span>
+                </div>
+            </div>
+        </div>
     </div>
 </div>

@@ -133,7 +133,7 @@
 
         <button type="button" class="btn btn-primary" id="driverParcelSubmitBtn">
             <i class="fas fa-save"></i>
-            حفظ الإرسالية
+            <span>حفظ الإرسالية</span>
         </button>
     </div>
 </div>

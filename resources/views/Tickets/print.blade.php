@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>طباعة إرسالية شحن - {{ $parcel->parcelNumber }}</title>
+    <title>طباعة تذكرة سفر - {{ $ticket->tecketNumber }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -180,55 +180,25 @@
             flex: 1;
         }
         
-        /* Items Table */
-        .items-section {
+        /* Address Section */
+        .address-section {
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
             margin: 0 24px 24px 24px;
         }
         
-        .items-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: #1f2937;
-            margin: 0 0 16px 0;
-            padding-bottom: 12px;
-            border-bottom: 2px solid #e5e7eb;
+        .address-section .info-grid {
+            margin: 0;
         }
         
-        .items-table {
-            width: 100%;
-            border-collapse: collapse;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            overflow: hidden;
-            background: white;
+        .address-section .info-section {
+            margin: 0;
         }
         
-        .items-table thead {
-            background: #304e58;
-            color: white;
-        }
-        
-        .items-table thead th {
-            padding: 12px 16px;
-            font-weight: 600;
-            font-size: 14px;
-            text-align: center;
-        }
-        
-        .items-table tbody td {
-            padding: 12px 16px;
-            text-align: center;
-            border-bottom: 1px solid #f3f4f6;
-            font-size: 14px;
-            color: #374151;
-        }
-        
-        .items-table tbody tr:last-child td {
-            border-bottom: none;
-        }
-        
-        .items-table tbody tr:nth-child(even) {
-            background: #f9fafb;
+        .address-section .info-row {
+            margin: 0;
         }
         
         /* Summary */
@@ -238,6 +208,10 @@
             border-top: 2px solid #304e58;
             border-bottom: 2px solid #304e58;
             margin: 0 24px 24px 24px;
+        }
+        
+        .summary-section .section-title {
+            margin-bottom: 16px;
         }
         
         .summary-content {
@@ -281,14 +255,6 @@
             margin: 0 24px 24px 24px;
         }
         
-        .notes-warning {
-            font-size: 13px;
-            line-height: 1.8;
-            color: #6b7280;
-            margin: 0 0 16px 0;
-            font-weight: 600;
-        }
-        
         .notes-list {
             margin: 0;
             padding-right: 20px;
@@ -299,30 +265,6 @@
         
         .notes-list li {
             margin-bottom: 8px;
-        }
-        
-        /* Signatures */
-        .signatures {
-            display: flex;
-            justify-content: space-around;
-            padding: 24px;
-            border-top: 1px solid #e5e7eb;
-            margin-top: 24px;
-            background: white;
-        }
-        
-        .signature-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .signature-item label {
-            font-weight: 600;
-            color: #6b7280;
-            font-size: 14px;
-            margin: 0;
         }
         
         /* Print Styles */
@@ -339,10 +281,6 @@
                 page-break-after: avoid;
             }
             
-            .items-section {
-                page-break-inside: avoid;
-            }
-            
             .summary-section {
                 page-break-inside: avoid;
             }
@@ -355,23 +293,23 @@
         <div class="invoice-header">
             <div class="header-left">
                 <div class="logo">
-                    @if($parcel->originOffice && $parcel->originOffice->officeImage)
-                        <img src="{{ asset('admin/upload/' . $parcel->originOffice->officeImage) }}" 
-                             alt="{{ $parcel->originOffice->officeName }}" />
+                    @if($ticket->office && $ticket->office->officeImage)
+                        <img src="{{ asset('admin/upload/' . $ticket->office->officeImage) }}" 
+                             alt="{{ $ticket->office->officeName }}" />
                     @else
-                        <i class="fas fa-box"></i>
+                        <i class="fas fa-bus"></i>
                     @endif
                 </div>
                 <div class="company-info">
-                    <h1 class="company-name">{{ $parcel->originOffice->officeName ?? 'شركة قوافل' }}</h1>
-                    <p class="company-address">{{ $parcel->originOffice->officeAddress ?? '' }}</p>
+                    <h1 class="company-name">{{ $ticket->office->officeName ?? 'شركة قوافل' }}</h1>
+                    <p class="company-address">{{ $ticket->office->officeAddress ?? '' }}</p>
                 </div>
             </div>
             <div class="header-right">
-                <div class="invoice-title">إرسالية شحن</div>
+                <div class="invoice-title">تذكرة سفر</div>
                 <div class="invoice-number">
-                    <span class="label">رقم الإرسالية:</span>
-                    <span class="value">{{ $parcel->parcelNumber }}</span>
+                    <span class="label">رقم التذكرة:</span>
+                    <span class="value">{{ $ticket->tecketNumber }}</span>
                 </div>
             </div>
         </div>
@@ -379,108 +317,122 @@
         <!-- Info Grid -->
         <div class="info-grid">
             <div class="info-section">
-                <h3 class="section-title">معلومات المرسل</h3>
+                <h3 class="section-title">معلومات المسافر</h3>
                 <div class="info-content">
                     <div class="info-row">
-                        <span class="info-label">اسم المرسل:</span>
-                        <span class="info-value">{{ $parcel->customer->FName }} {{ $parcel->customer->LName }}</span>
+                        <span class="info-label">اسم المسافر:</span>
+                        <span class="info-value">{{ $ticket->customer->FName }} {{ $ticket->customer->LName }}</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">هاتف المرسل:</span>
-                        <span class="info-value">{{ $parcel->custNumber }}</span>
+                        <span class="info-label">هاتف المسافر:</span>
+                        <span class="info-value">{{ $ticket->customer->custNumber }}</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">التاريخ:</span>
-                        <span class="info-value">{{ $parcel->parcelDate }}</span>
+                        <span class="info-label">رقم جواز السفر:</span>
+                        <span class="info-value">{{ $ticket->customer->customerPassport ?? '-' }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">تاريخ التذكرة:</span>
+                        <span class="info-value">{{ $ticket->ticketDate }}</span>
                     </div>
                 </div>
             </div>
 
             <div class="info-section">
-                <h3 class="section-title">معلومات المرسل إليه</h3>
+                <h3 class="section-title">معلومات السفر</h3>
                 <div class="info-content">
                     <div class="info-row">
-                        <span class="info-label">اسم المرسل إليه:</span>
-                        <span class="info-value">{{ $parcel->recipientName }}</span>
+                        <span class="info-label">تاريخ السفر:</span>
+                        <span class="info-value">{{ $ticket->travelDate }}</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">هاتف المرسل إليه:</span>
-                        <span class="info-value">{{ $parcel->recipientNumber }}</span>
+                        <span class="info-label">وقت السفر:</span>
+                        <span class="info-value">{{ $ticket->formatted_time }}</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">العنوان:</span>
-                        <span class="info-value">{{ $parcel->sendTo }}</span>
+                        <span class="info-label">رقم المقعد:</span>
+                        <span class="info-value">{{ $ticket->Seat }}</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">إلى مكتب:</span>
-                        <span class="info-value">{{ $parcel->destinationOffice->officeName ?? '-' }}</span>
+                        <span class="info-label">جهة السفر:</span>
+                        <span class="info-value">{{ $ticket->destination }}</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Items Table -->
-        <div class="items-section">
-            <h3 class="items-title">تفاصيل الطرود</h3>
-            <table class="items-table">
-                <thead>
-                    <tr>
-                        <th>معلومات الطرد</th>
-                        <th>العدد</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($parcel->details as $detail)
-                        <tr>
-                            <td>{{ $detail->detailInfo }}</td>
-                            <td>{{ $detail->detailQun }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
+        <!-- Address Section -->
+        @if($ticket->address)
+            <div class="address-section">
+                <h3 class="section-title">عنوان المسافر</h3>
+                <div class="info-grid">
+                    <div class="info-section">
+                        <div class="info-content">
+                            <div class="info-row">
+                                <span class="info-label">المدينة:</span>
+                                <span class="info-value">{{ $ticket->address->city }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">المنطقة:</span>
+                                <span class="info-value">{{ $ticket->address->area }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="info-section">
+                        <div class="info-content">
+                            <div class="info-row">
+                                <span class="info-label">اسم الشارع:</span>
+                                <span class="info-value">{{ $ticket->address->street }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">رقم المبنى:</span>
+                                <span class="info-value">{{ $ticket->address->buildingNumber }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @if($ticket->address->info)
+                    <div class="info-content" style="margin-top: 16px;">
+                        <div class="info-row">
+                            <span class="info-label">معلومات إضافية:</span>
+                            <span class="info-value">{{ $ticket->address->info }}</span>
+                        </div>
+                    </div>
+                @endif
+            </div>
+        @endif
 
         <!-- Summary -->
         <div class="summary-section">
+            <h3 class="section-title">ملخص الدفع</h3>
             <div class="summary-content">
                 <div class="summary-row">
-                    <span class="summary-label">رسوم الشحن:</span>
-                    <span class="summary-value">{{ intval($parcel->cost) }} {{ $parcel->currency }}</span>
+                    <span class="summary-label">سعر التذكرة:</span>
+                    <span class="summary-value">{{ $ticket->cost }} {{ $ticket->currency_name }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">المبلغ المدفوع:</span>
+                    <span class="summary-value">{{ $ticket->costRest }} {{ $ticket->currency_name }}</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">باقي المبلغ:</span>
+                    <span class="summary-value">{{ $ticket->unpaid_amount }} {{ $ticket->currency_name }}</span>
                 </div>
                 <div class="summary-row">
                     <span class="summary-label">حالة الدفع:</span>
-                    <span class="summary-value">{{ $parcel->paid === 'paid' ? 'مدفوع' : 'غير مدفوع' }}</span>
+                    <span class="summary-value">{{ $ticket->paid_text }}</span>
                 </div>
             </div>
         </div>
 
         <!-- Notes -->
         <div class="notes-section">
-            <p class="notes-warning">
-                تعتبر هذه الارسالية لاغية بعد 30 يوم من تاريخ اصدارها ولا يحق للمرسل
-                او المرسل اليه باي مطالبة من الشركة
-            </p>
             <ol class="notes-list">
-                <li>يحق للشركة فتح الطرد.</li>
-                <li>يتحمل المرسل كامل المسؤولية في حال تلف المواد المنقولة خلال الرحلة.</li>
-                <li>يتحمل المرسل كامل المسؤولية في حال مصادرة المواد من قبل السلطات.</li>
-                <li>سلامة البضاعة مسؤولية السائق.</li>
-                <li>في حال فقدان الطرد تقوم الشركة بتعويض المرسل قيمة مبلغ الشحن.</li>
+                <li>في حال الغاء موعد السفر يفقد قيمة التذكرة كاملة.</li>
+                <li>يحق لكل راكب شنطة 30 كيلو فقط.</li>
             </ol>
-        </div>
-
-        <!-- Signatures -->
-        <div class="signatures">
-            <div class="signature-item">
-                <label>اسم السائق:</label>
-            </div>
-            <div class="signature-item">
-                <label>توقيع السائق:</label>
-            </div>
-            <div class="signature-item">
-                <label>توقيع المرسل:</label>
-            </div>
         </div>
     </div>
 </body>
 </html>
+

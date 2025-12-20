@@ -71,15 +71,34 @@ class DashboardPage {
     bindEvents() {
         // Parcel row clicks
         document.querySelectorAll('[data-parcel-id]').forEach(row => {
-            row.addEventListener('click', () => {
+            row.addEventListener('click', (e) => {
+                // Don't trigger if clicking on a link or button
+                if (e.target.closest('a, button')) {
+                    return;
+                }
                 this.showParcelModal(row.dataset.parcelId);
             });
         });
 
         // Ticket row clicks
         document.querySelectorAll('[data-ticket-id]').forEach(row => {
-            row.addEventListener('click', () => {
+            row.addEventListener('click', (e) => {
+                // Don't trigger if clicking on a link or button
+                if (e.target.closest('a, button')) {
+                    return;
+                }
                 this.showTicketModal(row.dataset.ticketId);
+            });
+        });
+
+        // Driver Parcel row clicks
+        document.querySelectorAll('[data-driver-parcel-id]').forEach(row => {
+            row.addEventListener('click', (e) => {
+                // Don't trigger if clicking on a link or button
+                if (e.target.closest('a, button')) {
+                    return;
+                }
+                this.showDriverParcelModal(row.dataset.driverParcelId);
             });
         });
     }
@@ -88,41 +107,124 @@ class DashboardPage {
      * Show parcel details in modal
      * @param {string} id - Parcel ID
      */
-    async showParcelModal(id) {
-        const modal = new Modal(document.getElementById('appModal'));
+    showParcelModal(id) {
+        const modalElement = document.getElementById('appModal');
         const modalBody = document.getElementById('appModalBody');
-        modal.show();
-
-        try {
-            const response = await App.utils.ajax(route('parcel.show'), {
-                method: 'POST',
-                body: JSON.stringify({ id }),
-            });
-            modalBody.innerHTML = response.html;
-        } catch (err) {
-            modalBody.innerHTML = '<div class="text-danger text-center py-5">خطأ في الاتصال بالخادم</div>';
+        
+        if (!modalElement || !modalBody) {
+            return;
         }
+
+        // Find the row with the parcel data
+        const row = document.querySelector(`[data-parcel-id="${id}"]`);
+        if (!row) {
+            modalBody.innerHTML = '<div class="text-danger text-center py-5">لم يتم العثور على البيانات</div>';
+            const modal = new Modal(modalElement);
+            modal.show();
+            return;
+        }
+
+        // Get pre-rendered modal content from data attribute
+        const modalContent = row.dataset.parcelModal;
+        if (modalContent) {
+            // Decode base64 content with proper UTF-8 handling
+            try {
+                // Use decodeURIComponent with escape to properly handle UTF-8
+                const html = decodeURIComponent(escape(atob(modalContent)));
+                modalBody.innerHTML = html;
+            } catch (e) {
+                modalBody.innerHTML = '<div class="text-danger text-center py-5">خطأ في تحميل البيانات</div>';
+            }
+        } else {
+            modalBody.innerHTML = '<div class="text-danger text-center py-5">لا توجد بيانات متاحة</div>';
+        }
+
+        // Show modal immediately
+        const modal = new Modal(modalElement);
+        modal.show();
     }
 
     /**
      * Show ticket details in modal
      * @param {string} id - Ticket ID
      */
-    async showTicketModal(id) {
-        const modal = new Modal(document.getElementById('appModal'));
+    showTicketModal(id) {
+        const modalElement = document.getElementById('appModal');
         const modalBody = document.getElementById('appModalBody');
-        modal.show();
-
-        try {
-            const response = await App.utils.ajax(route('ticket.show'), {
-                method: 'POST',
-                body: JSON.stringify({ id }),
-            });
-
-            modalBody.innerHTML = response.html || '<div class="text-danger text-center py-5">تعذر تحميل البيانات</div>';
-        } catch (error) {
-            modalBody.innerHTML = '<div class="text-danger text-center py-5">حدث خطأ في تحميل البيانات</div>';
+        
+        if (!modalElement || !modalBody) {
+            return;
         }
+
+        // Find the row with the ticket data
+        const row = document.querySelector(`[data-ticket-id="${id}"]`);
+        if (!row) {
+            modalBody.innerHTML = '<div class="text-danger text-center py-5">لم يتم العثور على البيانات</div>';
+            const modal = new Modal(modalElement);
+            modal.show();
+            return;
+        }
+
+        // Get pre-rendered modal content from data attribute
+        const modalContent = row.dataset.ticketModal;
+        if (modalContent) {
+            // Decode base64 content with proper UTF-8 handling
+            try {
+                // Use decodeURIComponent with escape to properly handle UTF-8
+                const html = decodeURIComponent(escape(atob(modalContent)));
+                modalBody.innerHTML = html;
+            } catch (e) {
+                modalBody.innerHTML = '<div class="text-danger text-center py-5">خطأ في تحميل البيانات</div>';
+            }
+        } else {
+            modalBody.innerHTML = '<div class="text-danger text-center py-5">لا توجد بيانات متاحة</div>';
+        }
+
+        // Show modal immediately
+        const modal = new Modal(modalElement);
+        modal.show();
+    }
+
+    /**
+     * Show driver parcel details in modal
+     * @param {string} id - Driver Parcel ID
+     */
+    showDriverParcelModal(id) {
+        const modalElement = document.getElementById('appModal');
+        const modalBody = document.getElementById('appModalBody');
+        
+        if (!modalElement || !modalBody) {
+            return;
+        }
+
+        const row = document.querySelector(`[data-driver-parcel-id="${id}"]`);
+        if (!row) {
+            modalBody.innerHTML = '<div class="text-danger text-center py-5">لم يتم العثور على البيانات</div>';
+            const modal = new Modal(modalElement);
+            modal.show();
+            return;
+        }
+
+        const modalContent = row.dataset.driverParcelModal;
+        if (modalContent) {
+            try {
+                const binaryString = atob(modalContent);
+                const bytes = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                const html = new TextDecoder('utf-8').decode(bytes);
+                modalBody.innerHTML = html;
+            } catch (e) {
+                modalBody.innerHTML = '<div class="text-danger text-center py-5">خطأ في تحميل البيانات</div>';
+            }
+        } else {
+            modalBody.innerHTML = '<div class="text-danger text-center py-5">لا توجد بيانات متاحة</div>';
+        }
+
+        // Show modal immediately
+        const modal = new Modal(modalElement);
+        modal.show();
     }
 
     /**

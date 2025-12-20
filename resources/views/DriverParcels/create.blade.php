@@ -11,10 +11,10 @@
     <!-- Progress Bar -->
     <div class="wizard-progress noPrint">
         <div class="progress-bar">
-            <div class="progress-fill" id="driverParcelProgressFill" style="width: 25%"></div>
+            <div class="progress-fill" id="driverParcelProgressFill" style="width: 20%"></div>
         </div>
         <div class="progress-steps">
-            <span class="progress-text">الخطوة <span id="driverParcelCurrentStep">1</span> من <span id="driverParcelTotalSteps">4</span></span>
+            <span class="progress-text">الخطوة <span id="driverParcelCurrentStep">1</span> من <span id="driverParcelTotalSteps">5</span></span>
         </div>
     </div>
 
@@ -41,6 +41,11 @@
                 <i class="fas fa-box"></i>
                 <span class="step-label">اختيار الإرساليات</span>
             </li>
+            <li data-step="4">
+                <span class="step-number">5</span>
+                <i class="fas fa-print"></i>
+                <span class="step-label">المراجعة والطباعة</span>
+            </li>
         </ul>
     </div>
 
@@ -54,6 +59,7 @@
             @include('DriverParcels.steps.trip')
             @include('DriverParcels.steps.info')
             @include('DriverParcels.steps.parcels')
+            @include('DriverParcels.steps.print')
         </div>
     </form>
 </div>

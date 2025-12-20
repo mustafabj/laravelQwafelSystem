@@ -1,160 +1,107 @@
-<div class="formS paks tab print active invoicePrint" id="parcel">
-    <div class="container">
-
-        {{-- Company Details --}}
-        <div class="combanyDetails printFlex">
-            <div class="img">
-                @if($parcel->office && $parcel->office->officeImage)
-                    <img src="{{ asset('storage/'.$parcel->office->officeImage) }}" 
-                         alt="{{ $parcel->office->officeName }}" />
-                @endif
-            </div>
-            @include('components.details_title')    
-        </div>
-
-        {{-- Print Buttons --}}
-        <div class="printBtns">
-            <div>
-                <a href="{{ route('parcel.print', $parcel->parcelId) }}" target="_blank" class="printBtn printInlineFlex">
-                    <img src="{{ asset('image/printing.png') }}" alt="printer" />
-                    طباعة
-                </a>
-
-                <div class="noPrint">
-                    <label class="toggle-container">
-                        <span>مع السعر :</span>
-                        <input class="toggle-checkbox" type="checkbox" id="toggle-checkbox"
-                               onchange="pricePrint()" checked>
-                        <div class="toggle-switch"></div>
-                    </label>
-                </div>
-            </div>
-
-            {{-- Payment notice --}}
-            @if($parcel->paid === 'unpaid' && $parcel->paidInMainOffice)
-                <div class="noPrint">
-                    <div class="message">
-                        <span>الدفع في مكتب المرسل :</span>
-                        <span>{{ $parcel->mainOffice?->officeName }}</span>
-                    </div>
-                </div>
-            @endif
-
-            {{-- Accept button --}}
-            @if($parcel->accept === 'no' && $parcel->user_id !== $user->id)
-                <div class="printBtn printInlineFlex" onclick="acceptparcel({{ $parcel->id }})">
-                    <img src="{{ asset('image/accept.png') }}" alt="accept" /> قبول
-                </div>
+<div class="simple-modal-content">
+    <!-- Header -->
+    <div class="simple-modal-header">
+        <h2>إرسالية شحن - رقم {{ $parcel->parcelNumber }}</h2>
+        <div class="simple-modal-actions noPrint">
+            <a href="{{ route('parcel.print', $parcel->parcelId) }}" target="_blank" class="btn btn-primary btn-sm">
+                <i class="fas fa-print"></i> طباعة
+            </a>
+            @if($parcel->accept === 'no' && $parcel->userId !== $user->id)
+                <button class="btn btn-success btn-sm" onclick="acceptparcel({{ $parcel->parcelId }})" type="button">
+                    <i class="fas fa-check"></i> قبول
+                </button>
             @endif
         </div>
-
-        <h1 class="title">ارسالية شحن</h1>
     </div>
 
-    <div class="container">
-        <form>
-            <div class="top">
-                <div>
-                    <div>
-                        <label>رقم الارسالية :</label>
-                        <input type="text" value="{{ $parcel->parcelNumber }}" readonly />
-                    </div>
-                    <div>
-                        <label>هاتف المرسل :</label>
-                        <input type="text" value="{{ $parcel->custNumber }}" readonly />
-                    </div>
+    <!-- Content -->
+    <div class="simple-modal-body">
+        <!-- Sender Information -->
+        <div class="simple-section">
+            <h3 class="simple-section-title">معلومات المرسل</h3>
+            <div class="simple-data-grid">
+                <div class="simple-data-item">
+                    <span class="simple-label">اسم المرسل:</span>
+                    <span class="simple-value">{{ $parcel->customer->FName }} {{ $parcel->customer->LName }}</span>
                 </div>
-
-                <div>
-                    <div>
-                        <label>اسم المرسل :</label>
-                        <input type="text"
-                               value="{{ $parcel->customer->FName }} {{ $parcel->customer->LName }}"
-                               readonly />
-                    </div>
-                    <div>
-                        <label>التاريخ :</label>
-                        <input type="text" value="{{ $parcel->parcelDate }}" readonly />
-                    </div>
+                <div class="simple-data-item">
+                    <span class="simple-label">هاتف المرسل:</span>
+                    <span class="simple-value">{{ $parcel->custNumber }}</span>
+                </div>
+                <div class="simple-data-item">
+                    <span class="simple-label">التاريخ:</span>
+                    <span class="simple-value">{{ $parcel->parcelDate }}</span>
                 </div>
             </div>
+        </div>
 
-            <div class="top">
-                <div>
-                    <div>
-                        <label>اسم المرسل اليه :</label>
-                        <input type="text" value="{{ $parcel->recipientName }}" readonly />
-                    </div>
-                    <div>
-                        <label>هاتف المرسل اليه :</label>
-                        <input type="text" value="{{ $parcel->recipientNumber }}" readonly />
-                    </div>
+        <!-- Recipient Information -->
+        <div class="simple-section">
+            <h3 class="simple-section-title">معلومات المرسل إليه</h3>
+            <div class="simple-data-grid">
+                <div class="simple-data-item">
+                    <span class="simple-label">اسم المرسل إليه:</span>
+                    <span class="simple-value">{{ $parcel->recipientName }}</span>
                 </div>
-
-                <div>
-                    <div>
-                        <label>العنوان :</label>
-                        <input type="text" value="{{ $parcel->sendTo }}" readonly />
-                    </div>
-                    <div>
-                        <label>الى مكتب :</label>
-                        <input type="text" value="{{ $parcel->destinationOffice->officeName ?? '' }}" readonly />
-                    </div>
+                <div class="simple-data-item">
+                    <span class="simple-label">هاتف المرسل إليه:</span>
+                    <span class="simple-value">{{ $parcel->recipientNumber }}</span>
+                </div>
+                <div class="simple-data-item">
+                    <span class="simple-label">العنوان:</span>
+                    <span class="simple-value">{{ $parcel->sendTo }}</span>
+                </div>
+                <div class="simple-data-item">
+                    <span class="simple-label">إلى مكتب:</span>
+                    <span class="simple-value">{{ $parcel->destinationOffice->officeName ?? '-' }}</span>
                 </div>
             </div>
-        </form>
+        </div>
 
-        <h4 class="printOnly">
-            تعتبر هذه الارسالية لاغية بعد 30 يوم من تاريخ اصدارها ولا يحق للمرسل
-            او المرسل اليه باي مطالبة من الشركة
-        </h4>
+        <!-- Payment Notice -->
+        @if($parcel->paid === 'unpaid' && $parcel->paidInMainOffice)
+            <div class="simple-alert noPrint">
+                <i class="fas fa-info-circle"></i>
+                <span>الدفع في مكتب المرسل: {{ $parcel->mainOffice?->officeName }}</span>
+            </div>
+        @endif
 
-        {{-- Parcel Details --}}
-        <table>
-            <thead>
-                <tr>
-                    <td>معلومات الطرد</td>
-                    <td>العدد</td>
-                </tr>
-            </thead>
-            <tbody id="printParcels">
-                @foreach($parcel->details as $detail)
-                    <tr>
-                        <td>{{ $detail->detailInfo }}</td>
-                        <td>{{ $detail->detailQun }}</td>
-                    </tr>
-                @endforeach
+        <!-- Parcel Details -->
+        <div class="simple-section">
+            <h3 class="simple-section-title">تفاصيل الطرود</h3>
+            <div class="simple-table-container">
+                <table class="simple-table">
+                    <thead>
+                        <tr>
+                            <th>معلومات الطرد</th>
+                            <th>العدد</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($parcel->details as $detail)
+                            <tr>
+                                <td>{{ $detail->detailInfo }}</td>
+                                <td>{{ $detail->detailQun }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-                {{-- Shipping Cost --}}
-                <tr>
-                    <td colspan="2">
-                        <span class="trCost">
-                            <span id="costparcel">
-                                رسوم الشحن : {{ intval($parcel->cost) }} {{ $parcel->currency }}
-                            </span>
-                            <span id="costreceiptparcel">
-                                {{ $parcel->paid === 'paid' ? 'مدفوع' : 'غير مدفوع' }}
-                            </span>
-                        </span>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-
-        {{-- Notes --}}
-        <ol class="printOnly">
-            <li>يحق للشركة فتح الطرد.</li>
-            <li>يتحمل المرسل كامل المسؤولية في حال تلف المواد المنقولة خلال الرحلة.</li>
-            <li>يتحمل المرسل كامل المسؤولية في حال مصادرة المواد من قبل السلطات.</li>
-            <li>سلامة البضاعة مسؤولية السائق.</li>
-            <li>في حال فقدان الطرد تقوم الشركة بتعويض المرسل قيمة مبلغ الشحن.</li>
-        </ol>
-
-        {{-- Signatures --}}
-        <div class="signature printFlex">
-            <label>اسم السائق :</label>
-            <label>توقيع السائق :</label>
-            <label>توقيع المرسل :</label>
+        <!-- Financial Information -->
+        <div class="simple-section">
+            <h3 class="simple-section-title">المعلومات المالية</h3>
+            <div class="simple-data-grid">
+                <div class="simple-data-item">
+                    <span class="simple-label">رسوم الشحن:</span>
+                    <span class="simple-value" id="costparcel">{{ intval($parcel->cost) }} {{ $parcel->currency }}</span>
+                </div>
+                <div class="simple-data-item">
+                    <span class="simple-label">حالة الدفع:</span>
+                    <span class="simple-value" id="costreceiptparcel">{{ $parcel->paid === 'paid' ? 'مدفوع' : 'غير مدفوع' }}</span>
+                </div>
+            </div>
         </div>
     </div>
 </div>

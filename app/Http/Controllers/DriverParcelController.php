@@ -5,12 +5,13 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreDriverParcelRequest;
 use App\Http\Requests\UpdateDriverParcelItemStatusRequest;
 use App\Http\Requests\UpdateDriverParcelStatusRequest;
+use App\Models\Driver;
 use App\Models\DriverParcel;
 use App\Models\DriverParcelDetail;
+use App\Models\Office;
 use App\Models\ParcelDetail;
 use App\Models\Trip;
-use App\Models\Driver;
-use App\Models\Office;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,7 +25,7 @@ class DriverParcelController extends Controller
     public function index(Request $request): View
     {
         $user = Auth::user();
-        
+
         $filters = [
             'status' => $request->input('status', 'all'),
             'tripId' => $request->input('tripId'),
@@ -66,7 +67,7 @@ class DriverParcelController extends Controller
 
             // Trim and validate search term
             $searchTerm = trim($searchTerm);
-            
+
             if (strlen($searchTerm) < 2) {
                 return response()->json([
                     'success' => true,
@@ -85,7 +86,7 @@ class DriverParcelController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'حدث خطأ أثناء البحث: ' . $e->getMessage(),
+                'message' => 'حدث خطأ أثناء البحث: '.$e->getMessage(),
                 'parcelDetails' => [],
             ], 500);
         }
@@ -99,7 +100,7 @@ class DriverParcelController extends Controller
         $user = Auth::user();
         $trip = Trip::findById($request->tripId);
 
-        if (!$trip) {
+        if (! $trip) {
             return response()->json([
                 'success' => false,
                 'message' => 'الرحلة المحددة غير موجودة',
@@ -107,6 +108,15 @@ class DriverParcelController extends Controller
         }
 
         try {
+            $officeId = $request->officeId ?? $user->officeId ?? session()->get('officeId');
+
+            if (! $officeId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'يجب تحديد المكتب (officeId)',
+                ], 422);
+            }
+
             $data = [
                 'parcelNumber' => $request->parcelNumber,
                 'tripId' => $request->tripId,
@@ -114,7 +124,7 @@ class DriverParcelController extends Controller
                 'driverName' => $request->driverName,
                 'driverNumber' => $request->driverNumber,
                 'sendTo' => $request->sendTo,
-                'officeId' => session()->get('officeId'),
+                'officeId' => $officeId,
                 'cost' => $request->cost ?? 0,
                 'paid' => $request->paid ?? 0,
                 'costRest' => $request->costRest ?? 0,
@@ -123,15 +133,61 @@ class DriverParcelController extends Controller
 
             $driverParcel = DriverParcel::createWithDetails($data, $user, $request->parcelDetails);
 
+            // Load the saved driver parcel with all relations for the print step
+            $driverParcel->load([
+                'trip',
+                'office',
+                'user',
+                'details.parcelDetail.parcel.customer',
+            ]);
+
             return response()->json([
                 'success' => true,
                 'message' => 'تم إنشاء إرسالية السائق بنجاح',
                 'driverParcelId' => $driverParcel->parcelId,
+                'driverParcel' => [
+                    'parcelId' => $driverParcel->parcelId,
+                    'parcelNumber' => $driverParcel->parcelNumber,
+                    'driverName' => $driverParcel->driverName,
+                    'driverNumber' => $driverParcel->driverNumber,
+                    'sendTo' => $driverParcel->sendTo,
+                    'tripDate' => $driverParcel->tripDate ? (is_string($driverParcel->tripDate) ? $driverParcel->tripDate : Carbon::parse($driverParcel->tripDate)->format('Y-m-d')) : null,
+                    'cost' => $driverParcel->cost,
+                    'paid' => $driverParcel->paid,
+                    'costRest' => $driverParcel->costRest,
+                    'currency' => $driverParcel->currency,
+                    'parcelDate' => $driverParcel->parcelDate,
+                    'trip' => $driverParcel->trip ? [
+                        'tripId' => $driverParcel->trip->tripId,
+                        'tripName' => $driverParcel->trip->tripName,
+                        'destination' => $driverParcel->trip->destination,
+                    ] : null,
+                    'office' => $driverParcel->office ? [
+                        'officeId' => $driverParcel->office->officeId,
+                        'officeName' => $driverParcel->office->officeName,
+                    ] : null,
+                    'details' => $driverParcel->details->map(function ($detail) {
+                        return [
+                            'detailId' => $detail->detailId,
+                            'parcelDetailId' => $detail->parcelDetailId,
+                            'quantityTaken' => $detail->quantityTaken,
+                            'detailInfo' => $detail->detailInfo,
+                            'parcelDetail' => $detail->parcelDetail ? [
+                                'parcel' => $detail->parcelDetail->parcel ? [
+                                    'parcelNumber' => $detail->parcelDetail->parcel->parcelNumber,
+                                    'customer' => $detail->parcelDetail->parcel->customer ? [
+                                        'customerName' => ($detail->parcelDetail->parcel->customer->FName ?? '').' '.($detail->parcelDetail->parcel->customer->LName ?? ''),
+                                    ] : null,
+                                ] : null,
+                            ] : null,
+                        ];
+                    })->toArray(),
+                ],
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'حدث خطأ: ' . $e->getMessage(),
+                'message' => 'حدث خطأ: '.$e->getMessage(),
             ], 422);
         }
     }
@@ -143,11 +199,32 @@ class DriverParcelController extends Controller
     {
         $driverParcel = DriverParcel::findWithRelations($id);
 
-        if (!$driverParcel) {
+        if (! $driverParcel) {
             abort(404);
         }
 
         return view('DriverParcels.show', compact('driverParcel'));
+    }
+
+    /**
+     * Print the specified driver parcel.
+     */
+    public function print(int $id): View
+    {
+        $driverParcel = DriverParcel::findWithRelations($id);
+
+        if (! $driverParcel) {
+            abort(404);
+        }
+
+        // Load user's office relationship if officeId exists
+        $user = Auth::user();
+        $office = null;
+        if ($user && $user->officeId) {
+            $office = Office::find($user->officeId);
+        }
+
+        return view('DriverParcels.print', compact('driverParcel', 'office'));
     }
 
     /**
@@ -157,8 +234,8 @@ class DriverParcelController extends Controller
     {
         try {
             $driverParcelDetail = DriverParcelDetail::findByDriverParcel($request->detailId, $id);
-            
-            if (!$driverParcelDetail) {
+
+            if (! $driverParcelDetail) {
                 return response()->json([
                     'success' => false,
                     'message' => 'تفاصيل الإرسالية غير متطابقة',
@@ -183,7 +260,7 @@ class DriverParcelController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'حدث خطأ: ' . $e->getMessage(),
+                'message' => 'حدث خطأ: '.$e->getMessage(),
             ], 422);
         }
     }
@@ -200,7 +277,7 @@ class DriverParcelController extends Controller
                 $request->delayReason
             );
 
-            if (!$success) {
+            if (! $success) {
                 return response()->json([
                     'success' => false,
                     'message' => 'الإرسالية غير موجودة',
@@ -214,7 +291,7 @@ class DriverParcelController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'حدث خطأ: ' . $e->getMessage(),
+                'message' => 'حدث خطأ: '.$e->getMessage(),
             ], 422);
         }
     }

@@ -4,6 +4,7 @@ import DriverStep from './steps/DriverStep.js';
 import TripStep from './steps/TripStep.js';
 import InfoStep from './steps/InfoStep.js';
 import ParcelsStep from './steps/ParcelsStep.js';
+import PrintStep from './steps/PrintStep.js';
 
 import { Network, toast } from '../../core/utils.js';
 class DriverParcelWizard extends BaseWizard {
@@ -28,7 +29,8 @@ class DriverParcelWizard extends BaseWizard {
         DriverStep.init(this);
         TripStep.init(this);
         InfoStep.init(this);
-        ParcelsStep.init(this);    
+        ParcelsStep.init(this);
+        PrintStep.init(this);
         // Attach ParcelsStep to App for access in canGoNext and submit
         App.pages.DriverParcelWizard.ParcelsStep = ParcelsStep;
         this.bindSubmit();
@@ -57,8 +59,24 @@ class DriverParcelWizard extends BaseWizard {
                     toast('يرجى إضافة إرسالية واحدة على الأقل', 'warning');
                     return false;
                 }
+                break;
+            case 4:
+                // Print step - can only be accessed after save, prevent manual navigation
+                return false;
         }
         return true;
+    }
+
+    onStepChange(step) {
+        // Update review data when entering print step
+        if (step === 4 && App.pages.DriverParcelWizard.PrintStep) {
+            // Use saved data if available
+            if (this.savedDriverParcelData) {
+                App.pages.DriverParcelWizard.PrintStep.updateReviewData(this.savedDriverParcelData);
+            } else {
+                App.pages.DriverParcelWizard.PrintStep.updateReviewData();
+            }
+        }
     }
 
     validateAll() {
@@ -102,13 +120,26 @@ class DriverParcelWizard extends BaseWizard {
 
     async submit() {
         try {
-        const data = Object.fromEntries(new FormData(this.form));
-        data.parcelDetails =
-            App.pages.DriverParcelWizard.ParcelsStep.getSelected();
+            const data = Object.fromEntries(new FormData(this.form));
+            data.parcelDetails =
+                App.pages.DriverParcelWizard.ParcelsStep.getSelected();
 
-        const res = await Network.post(this.form.action, data);
-        toast(res.message || 'تم الحفظ', 'success');
-        location.href = '/driver-parcels';
+            const res = await Network.post(this.form.action, data);
+            
+            if (res.success) {
+                toast(res.message || 'تم الحفظ', 'success');
+                
+                // Store the saved driver parcel data for the print step
+                if (res.driverParcelId) {
+                    this.savedDriverParcelId = res.driverParcelId;
+                }
+                
+                // Navigate to print step after successful save
+                setTimeout(() => {
+                    this.currentStep = 4;
+                    this.showStep(4);
+                }, 500);
+            }
         } catch (error) {
             // Error is already shown by Network.post via toast
             // Don't redirect on error

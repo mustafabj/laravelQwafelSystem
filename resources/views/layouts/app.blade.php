@@ -37,26 +37,25 @@
 
                 <div class="menu-section">
                     <div class="menu-section-title">الارساليات</div>
-                    <a href="{{ route('dashboard') }}#parcels" class="menu-item">
+                    <a href="{{ route('dashboard') }}#parcels" class="menu-item {{ request()->routeIs('dashboard') && request()->has('tab') && request()->get('tab') === 'parcels' ? 'active' : '' }}">
                         <i class="fas fa-box"></i>
                         <span class="menu-item-text">جميع الارساليات</span>
-                    </a>
-                    <a href="#" class="menu-item">
-                        <i class="fas fa-inbox"></i>
-                        <span class="menu-item-text">الواردة</span>
-                        <span class="menu-badge">{{ $pendingCount ?? 0 }}</span>
-                    </a>
-                    <a href="#" class="menu-item">
-                        <i class="fas fa-paper-plane"></i>
-                        <span class="menu-item-text">الصادرة</span>
                     </a>
                 </div>
 
                 <div class="menu-section">
-                    <div class="menu-section-title">السفريات</div>
-                    <a href="{{ route('dashboard') }}#tickets" class="menu-item">
+                    <div class="menu-section-title">إرساليات السائقين</div>
+                    <a href="{{ route('driver-parcels.create') }}" class="menu-item {{ request()->routeIs('driver-parcels.*') ? 'active' : '' }}">
+                        <i class="fas fa-truck"></i>
+                        <span class="menu-item-text">اضافة إرسالية سائق</span>
+                    </a>
+                </div>
+
+                <div class="menu-section">
+                    <div class="menu-section-title">الرحلات</div>
+                    <a href="{{ route('trips.index') }}" class="menu-item {{ request()->routeIs('trips.*') ? 'active' : '' }}">
                         <i class="fas fa-bus"></i>
-                        <span class="menu-item-text">جميع السفريات</span>
+                        <span class="menu-item-text">جميع الرحلات</span>
                     </a>
                 </div>
 
@@ -139,8 +138,8 @@
 
     <!-- Global Modal -->
     <div class="modal fade" id="appModal" tabindex="-1" aria-labelledby="modelTitle" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content" id="appModalContent">
+        <div class="modal-dialog modal-dialog-centered modal-xl invoice-modal-dialog">
+            <div class="modal-content invoice-modal-content" id="appModalContent">
                 <div id="appModalBody"></div>
             </div>
         </div>
