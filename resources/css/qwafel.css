@@ -1636,7 +1636,9 @@ body.modal-open .main-content {
 }
 
 .modal-content.invoice-modal-content {
-    max-height: 95vh;
+    height: auto;
+    max-height: none;
+    overflow: visible;
     border-radius: 16px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
@@ -1719,8 +1721,8 @@ body.modal-open .main-content {
     display: flex;
     flex-direction: column;
     padding: 0;
-    overflow-y: auto;
-    max-height: calc(95vh - 120px);
+    overflow-y: visible;
+    height: auto;
 }
 
 #appModalBody > form {
@@ -1776,8 +1778,8 @@ body.modal-open .main-content {
 
 .simple-modal-body {
     padding: 28px;
-    max-height: calc(95vh - 100px);
-    overflow-y: auto;
+    height: auto;
+    overflow-y: visible;
 }
 
 .simple-section {
