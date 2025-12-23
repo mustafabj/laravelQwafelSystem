@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('trips')) {
+            return;
+        }
+
         Schema::create('trips', function (Blueprint $table) {
             $table->id('tripId');
             $table->string('tripName');
@@ -26,9 +30,16 @@ return new class extends Migration
             $table->integer('createdBy');
             $table->timestamps();
 
-            $table->foreign('driverId')->references('driverId')->on('driver')->onDelete('restrict');
-            $table->foreign('officeId')->references('officeId')->on('office')->onDelete('restrict');
-            $table->foreign('createdBy')->references('id')->on('users')->onDelete('restrict');
+            // Foreign keys - check if tables exist first
+            if (Schema::hasTable('driver')) {
+                $table->foreign('driverId')->references('driverId')->on('driver')->onDelete('restrict');
+            }
+            if (Schema::hasTable('office')) {
+                $table->foreign('officeId')->references('officeId')->on('office')->onDelete('restrict');
+            }
+            if (Schema::hasTable('users')) {
+                $table->foreign('createdBy')->references('id')->on('users')->onDelete('restrict');
+            }
         });
     }
 
@@ -40,4 +51,3 @@ return new class extends Migration
         Schema::dropIfExists('trips');
     }
 };
-

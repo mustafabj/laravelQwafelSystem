@@ -12,8 +12,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('trips', function (Blueprint $table) {
-            $table->dropForeign(['driverId']);
-            $table->dropColumn('driverId');
+            if (Schema::hasColumn('trips', 'driverId')) {
+                // Drop foreign key first if it exists
+                try {
+                    $foreignKeys = Schema::getConnection()
+                        ->select("SELECT CONSTRAINT_NAME FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'trips' AND CONSTRAINT_NAME LIKE '%driverid%'");
+                    if (! empty($foreignKeys)) {
+                        $table->dropForeign(['driverId']);
+                    }
+                } catch (\Exception $e) {
+                    // Foreign key might not exist
+                }
+                $table->dropColumn('driverId');
+            }
         });
     }
 

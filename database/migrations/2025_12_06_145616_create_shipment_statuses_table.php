@@ -11,6 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('shipment_statuses')) {
+            return;
+        }
+
+        if (Schema::hasTable('shipment_statuses')) {
+            return;
+        }
+
         Schema::create('shipment_statuses', function (Blueprint $table) {
             $table->id();
             $table->timestamps();

@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('driver')) {
+            return;
+        }
+
         Schema::create('driver', function (Blueprint $table) {
             $table->id('driverId');
             $table->string('driverName', 100);

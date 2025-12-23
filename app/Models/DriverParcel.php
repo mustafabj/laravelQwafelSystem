@@ -77,6 +77,11 @@ class DriverParcel extends Model
         return $this->belongsTo(Trip::class, 'tripId', 'tripId');
     }
 
+    public function trackingHistory()
+    {
+        return $this->hasMany(ParcelTracking::class, 'driverParcelId', 'parcelId');
+    }
+
     public static function getLastDriverParcels()
     {
         $user = Auth::user();
@@ -121,11 +126,15 @@ class DriverParcel extends Model
      */
     public function markAsArrivedIfComplete(): bool
     {
+        // Only mark as arrived if ALL items have arrived
         if ($this->allItemsArrived() && $this->status !== 'arrived') {
             $this->update([
                 'status' => 'arrived',
                 'arrivedAt' => now(),
             ]);
+
+            // Create tracking record for arrival (only when all items arrived)
+            $this->createTrackingRecord('arrived', 'وصل جميع العناصر إلى الوجهة', 'system');
 
             return true;
         }
@@ -263,6 +272,9 @@ class DriverParcel extends Model
                 DriverParcelDetail::insert($driverParcelDetailsData);
             }
 
+            // Create initial tracking record for each parcel (not per item, per parcel)
+            $driverParcel->createTrackingRecord('pending', 'تم إنشاء الإرسالية للسائق');
+
             return $driverParcel;
         });
     }
@@ -278,6 +290,7 @@ class DriverParcel extends Model
             return false;
         }
 
+        $oldStatus = $driverParcel->status;
         $updateData = ['status' => $status];
 
         if ($status === 'arrived') {
@@ -288,6 +301,155 @@ class DriverParcel extends Model
             $updateData['delayReason'] = $delayReason;
         }
 
-        return $driverParcel->update($updateData);
+        $updated = $driverParcel->update($updateData);
+
+        // Create tracking record if status changed
+        if ($updated && $oldStatus !== $status) {
+            $driverParcel->createTrackingRecord($status, $delayReason);
+        }
+
+        return $updated;
+    }
+
+    /**
+     * Update status with tracking.
+     */
+    public function updateStatus(string $status, ?string $delayReason = null, ?string $trackedBy = null): bool
+    {
+        $oldStatus = $this->status;
+        $updateData = ['status' => $status];
+
+        if ($status === 'arrived') {
+            // Only set arrivedAt if ALL items have arrived
+            if ($this->allItemsArrived()) {
+                $updateData['arrivedAt'] = now();
+            } else {
+                // Don't allow setting to arrived if not all items arrived
+                return false;
+            }
+        }
+
+        if ($delayReason !== null) {
+            $updateData['delayReason'] = $delayReason;
+        }
+
+        $updated = $this->update($updateData);
+
+        // If status changed to in_transit, mark all items as left office
+        if ($updated && $oldStatus !== $status && $status === 'in_transit') {
+            $this->details()->whereNull('leftOfficeAt')->each(function ($detail) {
+                $detail->markAsLeftOffice();
+            });
+        }
+
+        // Create tracking record if status changed (but not for arrived unless all items arrived)
+        if ($updated && $oldStatus !== $status) {
+            if ($status === 'arrived' && ! $this->allItemsArrived()) {
+                // Don't create tracking for arrived if not all items arrived
+                return $updated;
+            }
+            $this->createTrackingRecord($status, $delayReason, $trackedBy);
+        }
+
+        return $updated;
+    }
+
+    /**
+     * Create a tracking record for this driver parcel.
+     */
+    public function createTrackingRecord(?string $status = null, ?string $description = null, ?string $trackedBy = null): ParcelTracking
+    {
+        $status = $status ?? $this->status;
+        $location = $this->office ? $this->office->officeName : null;
+        $trackedBy = $trackedBy ?? (Auth::check() ? Auth::user()->name : 'system');
+
+        // Get all parcels associated with this driver parcel through details
+        $parcelIds = $this->details()
+            ->with('parcelDetail.parcel')
+            ->get()
+            ->pluck('parcelDetail.parcel.parcelId')
+            ->filter()
+            ->unique()
+            ->toArray();
+
+        // Create tracking records for each associated parcel
+        $trackingRecords = [];
+        foreach ($parcelIds as $parcelId) {
+            $trackingRecords[] = ParcelTracking::createTracking(
+                $parcelId,
+                $this->parcelId,
+                $this->tripId,
+                $status,
+                $location,
+                $description,
+                $trackedBy
+            );
+        }
+
+        return $trackingRecords[0] ?? ParcelTracking::createTracking(
+            $parcelIds[0] ?? 0,
+            $this->parcelId,
+            $this->tripId,
+            $status,
+            $location,
+            $description,
+            $trackedBy
+        );
+    }
+
+    /**
+     * Get parcels for a customer by phone number.
+     */
+    public static function getParcelsByCustomerPhone(string $phoneNumber): \Illuminate\Database\Eloquent\Collection
+    {
+        // Normalize phone number (remove spaces, dashes, etc.)
+        $phoneNumber = preg_replace('/[^0-9]/', '', $phoneNumber);
+
+        $parcels = self::whereHas('details.parcelDetail.parcel.customer', function ($query) use ($phoneNumber) {
+            $query->where(function ($q) use ($phoneNumber) {
+                $q->where('phone1', 'like', "%{$phoneNumber}%")
+                    ->orWhere('phone2', 'like', "%{$phoneNumber}%")
+                    ->orWhere('phone3', 'like', "%{$phoneNumber}%")
+                    ->orWhere('phone4', 'like', "%{$phoneNumber}%");
+            });
+        })
+            ->with([
+                'trip',
+                'office',
+                'details.parcelDetail.parcel.customer',
+                'details.parcelDetail.parcel.originOffice',
+                'details.parcelDetail.parcel.destinationOffice',
+            ])
+            ->orderBy('parcelDate', 'desc')
+            ->get();
+
+        // Calculate effective status for each parcel based on customer's items
+        return $parcels->map(function ($parcel) use ($phoneNumber) {
+            $customerItems = $parcel->details()
+                ->whereHas('parcelDetail.parcel.customer', function ($query) use ($phoneNumber) {
+                    $query->where(function ($q) use ($phoneNumber) {
+                        $q->where('phone1', 'like', "%{$phoneNumber}%")
+                            ->orWhere('phone2', 'like', "%{$phoneNumber}%")
+                            ->orWhere('phone3', 'like', "%{$phoneNumber}%")
+                            ->orWhere('phone4', 'like', "%{$phoneNumber}%");
+                    });
+                })
+                ->get();
+
+            $allCustomerItemsArrived = $customerItems->where('isArrived', false)->isEmpty();
+            $anyCustomerItemLeft = $customerItems->whereNotNull('leftOfficeAt')->isNotEmpty();
+
+            // Calculate effective status - simple: arrived or not
+            $effectiveStatus = 'pending';
+            if ($allCustomerItemsArrived && $customerItems->isNotEmpty()) {
+                $effectiveStatus = 'arrived';
+            } elseif ($anyCustomerItemLeft) {
+                $effectiveStatus = 'in_transit';
+            }
+
+            $parcel->effectiveStatus = $effectiveStatus;
+
+            return $parcel;
+        });
     }
 }

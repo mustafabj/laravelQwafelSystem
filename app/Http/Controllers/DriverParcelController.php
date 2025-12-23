@@ -203,7 +203,22 @@ class DriverParcelController extends Controller
             abort(404);
         }
 
-        return view('DriverParcels.show', compact('driverParcel'));
+        // Load tracking history
+        $parcelIds = $driverParcel->details()
+            ->with('parcelDetail.parcel')
+            ->get()
+            ->pluck('parcelDetail.parcel.parcelId')
+            ->filter()
+            ->unique()
+            ->toArray();
+
+        $trackingHistory = \App\Models\ParcelTracking::whereIn('parcelId', $parcelIds)
+            ->where('driverParcelId', $id)
+            ->with(['driverParcelDetail.parcelDetail.parcel.customer'])
+            ->orderBy('trackedAt', 'desc')
+            ->get();
+
+        return view('DriverParcels.show', compact('driverParcel', 'trackingHistory'));
     }
 
     /**
@@ -271,17 +286,41 @@ class DriverParcelController extends Controller
     public function updateStatus(UpdateDriverParcelStatusRequest $request, int $id): JsonResponse
     {
         try {
-            $success = DriverParcel::updateStatusById(
-                $id,
+            $driverParcel = DriverParcel::find($id);
+
+            if (! $driverParcel) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'الإرسالية غير موجودة',
+                ], 404);
+            }
+
+            $user = Auth::user();
+            $trackedBy = $user ? $user->name : 'system';
+
+            // Build description based on status
+            $description = match ($request->status) {
+                'in_transit' => 'تم بدء نقل الإرسالية - خرج آخر عنصر من المكتب',
+                'arrived' => 'وصلت جميع العناصر إلى الوجهة',
+                'delivered' => 'تم تسليم الإرسالية',
+                default => 'تم تحديث حالة الإرسالية',
+            };
+
+            if ($request->delayReason) {
+                $description .= ' - '.$request->delayReason;
+            }
+
+            $success = $driverParcel->updateStatus(
                 $request->status,
-                $request->delayReason
+                $description,
+                $trackedBy
             );
 
             if (! $success) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'الإرسالية غير موجودة',
-                ], 404);
+                    'message' => 'فشل تحديث حالة الإرسالية',
+                ], 422);
             }
 
             return response()->json([

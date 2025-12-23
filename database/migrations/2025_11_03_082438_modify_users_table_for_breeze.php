@@ -12,13 +12,22 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['position_id','remember_token_expiry']);
+            $columnsToDrop = [];
+            if (Schema::hasColumn('users', 'position_id')) {
+                $columnsToDrop[] = 'position_id';
+            }
+            if (Schema::hasColumn('users', 'remember_token_expiry')) {
+                $columnsToDrop[] = 'remember_token_expiry';
+            }
+            if (! empty($columnsToDrop)) {
+                $table->dropColumn($columnsToDrop);
+            }
 
-            if (!Schema::hasColumn('users', 'email_verified_at')) {
+            if (! Schema::hasColumn('users', 'email_verified_at')) {
                 $table->timestamp('email_verified_at')->nullable()->after('email');
             }
 
-            if (!Schema::hasColumn('users', 'remember_token')) {
+            if (! Schema::hasColumn('users', 'remember_token')) {
                 $table->rememberToken();
             }
 
@@ -28,7 +37,7 @@ return new class extends Migration
             $table->timestamp('created_at')->nullable()->change();
             $table->timestamp('updated_at')->nullable()->change();
 
-            if (!Schema::hasColumn('users', 'phone')) {
+            if (! Schema::hasColumn('users', 'phone')) {
                 $table->string('phone', 20)->nullable()->after('email');
             }
 

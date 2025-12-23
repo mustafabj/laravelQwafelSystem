@@ -10,7 +10,9 @@ class DriverParcelDetail extends Model
     use HasFactory;
 
     protected $table = 'driverparceldetails';
+
     protected $primaryKey = 'detailId';
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -21,6 +23,7 @@ class DriverParcelDetail extends Model
         'quantityTaken',
         'isArrived',
         'arrivedAt',
+        'leftOfficeAt',
     ];
 
     protected $casts = [
@@ -31,6 +34,7 @@ class DriverParcelDetail extends Model
         'quantityTaken' => 'integer',
         'isArrived' => 'boolean',
         'arrivedAt' => 'datetime',
+        'leftOfficeAt' => 'datetime',
     ];
 
     public function driverParcel()
@@ -41,6 +45,25 @@ class DriverParcelDetail extends Model
     public function parcelDetail()
     {
         return $this->belongsTo(ParcelDetail::class, 'parcelDetailId', 'detailId');
+    }
+
+    /**
+     * Mark item as left office (in transit).
+     */
+    public function markAsLeftOffice(): bool
+    {
+        if ($this->leftOfficeAt) {
+            return false;
+        }
+
+        $this->update([
+            'leftOfficeAt' => now(),
+        ]);
+
+        // Create tracking record for this item leaving
+        $this->createTrackingForLeaving();
+
+        return true;
     }
 
     /**
@@ -57,10 +80,66 @@ class DriverParcelDetail extends Model
             'arrivedAt' => now(),
         ]);
 
-        // Check if driver parcel should be marked as arrived
+        // Create tracking record for arrival
+        $this->createTrackingForArrival();
+
+        // Check if driver parcel should be marked as arrived (only if ALL items arrived)
         $this->driverParcel->markAsArrivedIfComplete();
 
         return true;
+    }
+
+    /**
+     * Create tracking record when item leaves office.
+     */
+    protected function createTrackingForLeaving(): void
+    {
+        $parcelDetail = $this->parcelDetail;
+        if (! $parcelDetail || ! $parcelDetail->parcel) {
+            return;
+        }
+
+        $driverParcel = $this->driverParcel;
+        $office = $driverParcel->office;
+
+        ParcelTracking::createTracking(
+            $parcelDetail->parcel->parcelId,
+            $driverParcel->parcelId,
+            $driverParcel->tripId,
+            'in_transit',
+            $office ? $office->officeName : null,
+            'تم إرسال العنصر من المكتب',
+            'system',
+            $this->detailId
+        );
+    }
+
+    /**
+     * Create tracking record when item arrives.
+     */
+    protected function createTrackingForArrival(): void
+    {
+        $parcelDetail = $this->parcelDetail;
+        if (! $parcelDetail || ! $parcelDetail->parcel) {
+            return;
+        }
+
+        $driverParcel = $this->driverParcel;
+        $office = $driverParcel->office;
+
+        // Only create "arrived" tracking if ALL items have arrived
+        if ($driverParcel->allItemsArrived()) {
+            ParcelTracking::createTracking(
+                $parcelDetail->parcel->parcelId,
+                $driverParcel->parcelId,
+                $driverParcel->tripId,
+                'arrived',
+                $office ? $office->officeName : null,
+                'وصل جميع العناصر إلى الوجهة',
+                'system',
+                $this->detailId
+            );
+        }
     }
 
     /**
@@ -68,7 +147,7 @@ class DriverParcelDetail extends Model
      */
     public function markAsNotArrived(): bool
     {
-        if (!$this->isArrived) {
+        if (! $this->isArrived) {
             return false;
         }
 

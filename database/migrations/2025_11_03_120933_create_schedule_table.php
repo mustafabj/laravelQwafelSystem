@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('schedule')) {
+            return;
+        }
+
         Schema::create('schedule', function (Blueprint $table) {
             $table->integer('scheduleId', true);
             $table->string('track');

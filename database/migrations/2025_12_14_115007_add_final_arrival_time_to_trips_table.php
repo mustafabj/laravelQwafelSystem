@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('trips', function (Blueprint $table) {
-            $table->time('finalArrivalTime')->nullable()->after('destination')->comment('Final arrival time at destination');
+            if (! Schema::hasColumn('trips', 'finalArrivalTime')) {
+                $table->time('finalArrivalTime')->nullable()->after('destination')->comment('Final arrival time at destination');
+            }
         });
     }
 
@@ -22,7 +24,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('trips', function (Blueprint $table) {
-            $table->dropColumn('finalArrivalTime');
+            if (Schema::hasColumn('trips', 'finalArrivalTime')) {
+                $table->dropColumn('finalArrivalTime');
+            }
         });
     }
 };

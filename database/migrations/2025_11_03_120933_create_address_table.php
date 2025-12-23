@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('address')) {
+            return;
+        }
+
         Schema::create('address', function (Blueprint $table) {
             $table->integer('addressId', true);
             $table->integer('customerId')->index('fk_customerid_idx');

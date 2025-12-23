@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\CustomerPortalController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DriverController;
 use App\Http\Controllers\DriverParcelController;
@@ -13,6 +14,15 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+// Customer Portal Routes (Public - phone-based authentication)
+Route::prefix('customer-portal')->name('customer-portal.')->group(function () {
+    Route::get('/login', [CustomerPortalController::class, 'showLogin'])->name('login');
+    Route::post('/login', [CustomerPortalController::class, 'login']);
+    Route::get('/dashboard', [CustomerPortalController::class, 'dashboard'])->name('dashboard');
+    Route::get('/track/{parcelId}', [CustomerPortalController::class, 'track'])->name('track');
+    Route::post('/logout', [CustomerPortalController::class, 'logout'])->name('logout');
 });
 
 Route::middleware('auth')->group(function () {
@@ -61,6 +71,16 @@ Route::middleware('auth')->group(function () {
 
     // Trips
     Route::resource('trips', TripController::class);
+
+    // Admin Trip Management
+    Route::prefix('admin/trip-management')->name('admin.trip-management.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\AdminTripManagementController::class, 'index'])->name('index');
+        Route::get('/trips/{tripId}/arrivals', [\App\Http\Controllers\AdminTripManagementController::class, 'getTripArrivals'])->name('trip.arrivals');
+        Route::get('/arrivals/{arrivalId}', [\App\Http\Controllers\AdminTripManagementController::class, 'getArrival'])->name('arrival.show');
+        Route::post('/arrivals/{arrivalId}/approve', [\App\Http\Controllers\AdminTripManagementController::class, 'approveArrival'])->name('arrival.approve');
+        Route::post('/arrivals/{arrivalId}/reject', [\App\Http\Controllers\AdminTripManagementController::class, 'rejectArrival'])->name('arrival.reject');
+    });
+
     // Drivers
     Route::resource('drivers', DriverController::class);
     Route::post('/drivers/search', [DriverController::class, 'search'])->name('drivers.search');

@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('file_operations_logs')) {
+            return;
+        }
+
         Schema::create('file_operations_logs', function (Blueprint $table) {
             $table->integer('id', true);
             $table->timestamp('timestamp')->nullable()->useCurrent()->index('idx_timestamp');

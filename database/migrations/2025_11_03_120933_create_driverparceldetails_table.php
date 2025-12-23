@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('driverparceldetails')) {
+            return;
+        }
+
         Schema::create('driverparceldetails', function (Blueprint $table) {
             $table->integer('detailId', true);
             $table->integer('detailQun');

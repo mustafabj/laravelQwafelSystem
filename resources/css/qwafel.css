@@ -1723,6 +1723,7 @@ body.modal-open .main-content {
     padding: 0;
     overflow-y: visible;
     height: auto;
+    border-radius: 16px;
 }
 
 #appModalBody > form {

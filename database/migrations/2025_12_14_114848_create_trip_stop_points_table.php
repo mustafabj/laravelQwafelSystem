@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('trip_stop_points')) {
+            return;
+        }
+
         Schema::create('trip_stop_points', function (Blueprint $table) {
             $table->id('stopPointId');
             $table->unsignedBigInteger('tripId');
@@ -19,7 +23,10 @@ return new class extends Migration
             $table->integer('order')->default(0)->comment('Order of stop points in the trip');
             $table->timestamps();
 
-            $table->foreign('tripId')->references('tripId')->on('trips')->onDelete('cascade');
+            // Foreign key - check if trips table exists
+            if (Schema::hasTable('trips')) {
+                $table->foreign('tripId')->references('tripId')->on('trips')->onDelete('cascade');
+            }
             $table->index(['tripId', 'order']);
         });
     }

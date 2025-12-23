@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('scheduled_driver_parcels')) {
+            return;
+        }
+
         Schema::create('scheduled_driver_parcels', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
