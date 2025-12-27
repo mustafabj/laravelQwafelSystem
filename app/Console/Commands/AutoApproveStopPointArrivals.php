@@ -34,6 +34,9 @@ class AutoApproveStopPointArrivals extends Command
 
         foreach ($pendingArrivals as $arrival) {
             if ($arrival->shouldAutoApprove()) {
+                // Load relationships before auto-approving
+                $arrival->load(['driverParcel', 'stopPoint']);
+
                 if ($arrival->autoApprove()) {
                     $approvedCount++;
 
@@ -55,40 +58,7 @@ class AutoApproveStopPointArrivals extends Command
      */
     protected function createTrackingForArrival(TripStopPointArrival $arrival): void
     {
-        $driverParcel = $arrival->driverParcel;
-        $stopPoint = $arrival->stopPoint;
-
-        if (! $driverParcel || ! $stopPoint) {
-            return;
-        }
-
-        $parcelIds = $driverParcel->details()
-            ->with('parcelDetail.parcel')
-            ->get()
-            ->pluck('parcelDetail.parcel.parcelId')
-            ->filter()
-            ->unique()
-            ->toArray();
-
-        $description = "وصل السائق إلى نقطة: {$stopPoint->stopName} (موافقة تلقائية)";
-
-        if ($arrival->onTime === false) {
-            $description .= ' (تأخر)';
-        } elseif ($arrival->onTime === true) {
-            $description .= ' (في الوقت المحدد)';
-        }
-
-        foreach ($parcelIds as $parcelId) {
-            \App\Models\ParcelTracking::createTracking(
-                $parcelId,
-                $driverParcel->parcelId,
-                $driverParcel->tripId,
-                'in_transit',
-                $stopPoint->stopName,
-                $description,
-                'system',
-                null
-            );
-        }
+        // Use the model's method to create tracking
+        $arrival->createTrackingForAutoApproval();
     }
 }

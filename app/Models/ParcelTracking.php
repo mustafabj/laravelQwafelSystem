@@ -90,4 +90,23 @@ class ParcelTracking extends Model
             ->orderBy('trackedAt', 'desc')
             ->get();
     }
+
+    /**
+     * Get tracking history for customer's items in a driver parcel.
+     */
+    public static function getTrackingHistoryForCustomer(
+        array $parcelIds,
+        int $driverParcelId,
+        array $customerItemIds
+    ): \Illuminate\Database\Eloquent\Collection {
+        return self::whereIn('parcelId', $parcelIds)
+            ->where('driverParcelId', $driverParcelId)
+            ->where(function ($query) use ($customerItemIds) {
+                // Include tracking for customer's items OR general tracking (without specific item)
+                $query->whereIn('driverParcelDetailId', $customerItemIds)
+                    ->orWhereNull('driverParcelDetailId');
+            })
+            ->orderBy('trackedAt', 'desc')
+            ->get();
+    }
 }

@@ -73,12 +73,13 @@ Route::middleware('auth')->group(function () {
     Route::resource('trips', TripController::class);
 
     // Admin Trip Management
-    Route::prefix('admin/trip-management')->name('admin.trip-management.')->group(function () {
+    Route::prefix('trip-management')->name('admin.trip-management.')->group(function () {
         Route::get('/', [\App\Http\Controllers\AdminTripManagementController::class, 'index'])->name('index');
         Route::get('/trips/{tripId}/arrivals', [\App\Http\Controllers\AdminTripManagementController::class, 'getTripArrivals'])->name('trip.arrivals');
         Route::get('/arrivals/{arrivalId}', [\App\Http\Controllers\AdminTripManagementController::class, 'getArrival'])->name('arrival.show');
-        Route::post('/arrivals/{arrivalId}/approve', [\App\Http\Controllers\AdminTripManagementController::class, 'approveArrival'])->name('arrival.approve');
-        Route::post('/arrivals/{arrivalId}/reject', [\App\Http\Controllers\AdminTripManagementController::class, 'rejectArrival'])->name('arrival.reject');
+        Route::put('/arrivals', [\App\Http\Controllers\AdminTripManagementController::class, 'updateArrival'])->name('arrival.update-new');
+        Route::put('/arrivals/{arrivalId}', [\App\Http\Controllers\AdminTripManagementController::class, 'updateArrival'])->name('arrival.update')->where('arrivalId', '[0-9]+');
+        Route::post('/driver-parcels/{driverParcelId}/stop-points/{stopPointId}/mark-arrived', [\App\Http\Controllers\AdminTripManagementController::class, 'markArrived'])->name('mark-arrived');
     });
 
     // Drivers

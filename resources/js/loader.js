@@ -16,9 +16,11 @@ const modules = import.meta.glob([
     './Pages/steps/FormStep.js',
     './Pages/OrderWizard.js',
     './core/BaseWizard.js',
-    './Pages/driverParcel/index.js',
-    './Pages/DriverParcels.js',
-    './Pages/Trips.js',
+        './Pages/driverParcel/index.js',
+        './Pages/DriverParcels.js',
+        './Pages/Trips.js',
+        './Pages/TripManagement.js',
+        './Pages/Tracking.js',
 ], { eager: false });
 
     /**
@@ -45,6 +47,8 @@ class Loader {
         'driver-parcels.index': ['Pages/DriverParcels.js'],
         'trips.index': ['Pages/Trips.js'],
         'trips.create': ['Pages/Trips.js'],
+        'admin.trip-management.index': ['Pages/TripManagement.js'],
+        'customer-portal.track': ['Pages/Tracking.js'],
         };
     }
 

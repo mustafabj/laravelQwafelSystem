@@ -57,6 +57,10 @@
                         <i class="fas fa-bus"></i>
                         <span class="menu-item-text">جميع الرحلات</span>
                     </a>
+                    <a href="{{ route('admin.trip-management.index') }}" class="menu-item {{ request()->routeIs('admin.trip-management.*') ? 'active' : '' }}">
+                        <i class="fas fa-route"></i>
+                        <span class="menu-item-text">إدارة الرحلات والموافقات</span>
+                    </a>
                 </div>
 
                 <div class="menu-section">

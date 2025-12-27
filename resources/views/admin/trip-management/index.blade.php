@@ -11,148 +11,243 @@
         </h1>
     </div>
 
-    @if($allPendingArrivals->count() > 0)
-        <div class="alert alert-warning">
-            <i class="fas fa-exclamation-triangle"></i>
-            يوجد {{ $allPendingArrivals->count() }} طلب موافقة في انتظار المراجعة
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card stat-total">
+            <div class="stat-icon">
+                <i class="fas fa-list"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ $stats['total'] }}</h3>
+                <p>إجمالي الإرساليات</p>
+            </div>
         </div>
-    @endif
+        <div class="stat-card stat-active">
+            <div class="stat-icon">
+                <i class="fas fa-sync-alt"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ $stats['active'] }}</h3>
+                <p>إرساليات نشطة</p>
+            </div>
+        </div>
+        <div class="stat-card stat-completed">
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-content">
+                <h3>{{ $stats['completed'] }}</h3>
+                <p>مكتملة</p>
+            </div>
+        </div>
+    </div>
 
-    <div class="trips-list">
-        @forelse($trips as $trip)
-            <div class="trip-card">
-                <div class="trip-header">
-                    <div class="trip-title-section">
-                        <h3 class="trip-name">
-                            <i class="fas fa-route"></i>
-                            {{ $trip->tripName }}
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+        <a href="{{ route('admin.trip-management.index', ['filter' => 'all']) }}" 
+           class="filter-tab {{ $filter === 'all' ? 'active' : '' }}">
+            <i class="fas fa-list"></i>
+            الكل ({{ $stats['total'] }})
+        </a>
+        <a href="{{ route('admin.trip-management.index', ['filter' => 'active']) }}" 
+           class="filter-tab {{ $filter === 'active' ? 'active' : '' }}">
+            <i class="fas fa-sync-alt"></i>
+            نشطة ({{ $stats['active'] }})
+        </a>
+        <a href="{{ route('admin.trip-management.index', ['filter' => 'not_started']) }}" 
+           class="filter-tab {{ $filter === 'not_started' ? 'active' : '' }}">
+            <i class="fas fa-clock"></i>
+            لم تبدأ ({{ $stats['not_started'] ?? 0 }})
+        </a>
+        <a href="{{ route('admin.trip-management.index', ['filter' => 'completed']) }}" 
+           class="filter-tab {{ $filter === 'completed' ? 'active' : '' }}">
+            <i class="fas fa-check-circle"></i>
+            مكتملة ({{ $stats['completed'] }})
+        </a>
+    </div>
+
+    <div class="driver-parcels-list">
+        @forelse($driverParcels as $driverParcel)
+            <div class="driver-parcel-card">
+                <div class="driver-parcel-header">
+                    <div class="driver-parcel-title">
+                        <h3>
+                            <i class="fas fa-box"></i>
+                            إرسالية #{{ $driverParcel['parcelNumber'] }}
                         </h3>
-                        <div class="trip-meta">
-                            <span class="trip-destination">
-                                <i class="fas fa-map-marker-alt"></i>
-                                {{ $trip->destination }}
+                        <div class="driver-parcel-meta">
+                            <span class="meta-item">
+                                <i class="fas fa-user"></i>
+                                {{ $driverParcel['driverName'] }}
                             </span>
-                            <span class="trip-office">
+                            <span class="meta-item">
                                 <i class="fas fa-building"></i>
-                                {{ $trip->office->officeName ?? 'غير محدد' }}
+                                {{ $driverParcel['officeName'] }}
+                            </span>
+                            @if($driverParcel['showTripName'])
+                                <span class="meta-item">
+                                    <i class="fas fa-route"></i>
+                                    من رحلة: {{ $driverParcel['tripName'] }}
+                                </span>
+                            @endif
+                            @if($driverParcel['showTripDate'])
+                                <span class="meta-item">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    تاريخ الإرسالية: {{ $driverParcel['tripDate'] }}
+                                </span>
+                            @endif
+                            @if($driverParcel['showParcelDate'])
+                                <span class="meta-item">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    تاريخ الإرسالية: {{ $driverParcel['parcelDate'] }}
+                                </span>
+                            @endif
+                            <span class="meta-item">
+                                <i class="fas fa-info-circle"></i>
+                                {{ $driverParcel['statusText'] }}
                             </span>
                         </div>
                     </div>
-                    <div class="trip-status">
-                        <span class="badge badge-warning">
-                            {{ $trip->pendingArrivals->count() }} طلب موافقة
+                    <div class="driver-parcel-status">
+                        <span class="badge {{ $driverParcel['statusBadge']['class'] }}">
+                            <i class="fas {{ $driverParcel['statusBadge']['icon'] }}"></i>
+                            {{ $driverParcel['statusBadge']['text'] }}
                         </span>
                     </div>
                 </div>
 
-                <div class="pending-arrivals-section">
-                    <h4 class="section-title">
-                        <i class="fas fa-clock"></i>
-                        طلبات الموافقة المعلقة
-                    </h4>
+                <!-- Progress Timeline -->
+                <div class="progress-timeline">
+                    <div class="timeline-header">
+                        <h4 class="section-title">
+                            <i class="fas fa-list-ol"></i>
+                            مسار الإرسالية
+                        </h4>
+                    </div>
 
-                    <div class="arrivals-list">
-                        @foreach($trip->pendingArrivals as $arrival)
-                            <div class="arrival-card" data-arrival-id="{{ $arrival->arrivalId }}">
-                                <div class="arrival-header">
-                                    <div class="arrival-info">
-                                        <strong>
-                                            <i class="fas fa-map-marker-alt"></i>
-                                            {{ $arrival->stopPoint->stopName ?? 'نقطة غير محددة' }}
-                                        </strong>
-                                        <span class="arrival-time">
-                                            <i class="fas fa-clock"></i>
-                                            متوقع: {{ $arrival->expectedArrivalTime ? \Carbon\Carbon::parse($arrival->expectedArrivalTime)->format('Y-m-d H:i') : '-' }}
-                                        </span>
-                                        @if($arrival->arrivedAt)
-                                            <span class="arrival-time">
-                                                <i class="fas fa-check"></i>
-                                                وصل: {{ \Carbon\Carbon::parse($arrival->arrivedAt)->format('Y-m-d H:i') }}
-                                            </span>
-                                        @endif
-                                        <span class="arrival-request-time">
-                                            <i class="fas fa-hourglass-half"></i>
-                                            طلب الموافقة: {{ $arrival->requestedAt ? \Carbon\Carbon::parse($arrival->requestedAt)->diffForHumans() : '-' }}
-                                        </span>
-                                    </div>
-                                    <div class="arrival-actions">
-                                        <button class="btn btn-success btn-sm approve-btn" 
-                                                data-arrival-id="{{ $arrival->arrivalId }}"
-                                                data-stop-name="{{ $arrival->stopPoint->stopName ?? '' }}">
-                                            <i class="fas fa-check"></i> موافقة
-                                        </button>
-                                        <button class="btn btn-danger btn-sm reject-btn" 
-                                                data-arrival-id="{{ $arrival->arrivalId }}">
-                                            <i class="fas fa-times"></i> رفض
-                                        </button>
-                                    </div>
+                    <div class="timeline-container">
+                        @foreach($driverParcel['stopPoints'] as $stopPoint)
+                            <div class="timeline-item {{ $stopPoint['hasArrived'] ? 'completed' : '' }} {{ $stopPoint['hasDelay'] ? 'delayed' : '' }}" 
+                                 data-stop-point-id="{{ $stopPoint['stopPointId'] }}"
+                                 data-arrival-id="{{ $stopPoint['arrival']['arrivalId'] ?? '' }}">
+                                
+                                <div class="timeline-line"></div>
+                                <div class="timeline-dot">
+                                    @if($stopPoint['hasArrived'])
+                                        <i class="fas fa-check"></i>
+                                    @else
+                                        <i class="fas fa-circle"></i>
+                                    @endif
                                 </div>
 
-                                <div class="arrival-details">
-                                    <div class="detail-row">
-                                        <span class="detail-label">إرسالية السائق:</span>
-                                        <span class="detail-value">#{{ $arrival->driverParcel->parcelNumber ?? '-' }}</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-label">السائق:</span>
-                                        <span class="detail-value">{{ $arrival->driverParcel->driverName ?? '-' }}</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-label">المكتب:</span>
-                                        <span class="detail-value">{{ $arrival->driverParcel->office->officeName ?? '-' }}</span>
-                                    </div>
-                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-header-info">
+                                        <div class="stop-point-info">
+                                            <h5 class="stop-point-name">
+                                                <i class="fas fa-map-marker-alt"></i>
+                                                {{ $stopPoint['stopName'] }}
+                                            </h5>
+                                            <div class="stop-point-meta">
+                                                @if($stopPoint['showExpectedTime'])
+                                                    <span class="meta-item">
+                                                        <i class="fas {{ $stopPoint['expectedTimeIcon'] }}"></i>
+                                                        {{ $stopPoint['expectedTimeLabel'] }}: {{ $stopPoint['expectedTimeDisplay'] }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </div>
 
-                                <!-- Approval Modal (hidden by default) -->
-                                <div class="approval-modal" id="approvalModal{{ $arrival->arrivalId }}" style="display: none;">
-                                    <div class="modal-content">
-                                        <h4>الموافقة على الوصول</h4>
-                                        <form class="approval-form" data-arrival-id="{{ $arrival->arrivalId }}">
-                                            @csrf
-                                            <div class="form-group">
-                                                <label>
-                                                    <input type="radio" name="onTime" value="1" checked> وصل في الوقت المحدد
-                                                </label>
-                                                <label>
-                                                    <input type="radio" name="onTime" value="0"> تأخر
-                                                </label>
-                                            </div>
-                                            <div class="form-group">
-                                                <label>تعليق (سيظهر للعميل):</label>
-                                                <textarea name="comment" rows="3" placeholder="أضف تعليقاً (اختياري)"></textarea>
-                                            </div>
-                                            <div class="form-actions">
-                                                <button type="submit" class="btn btn-success">
-                                                    <i class="fas fa-check"></i> موافقة
-                                                </button>
-                                                <button type="button" class="btn btn-secondary cancel-btn">
-                                                    إلغاء
-                                                </button>
-                                            </div>
-                                        </form>
+                                        <div class="arrival-status-badge">
+                                            @if($stopPoint['hasArrived'])
+                                                <span class="badge badge-success">
+                                                    <i class="fas fa-check"></i>
+                                                    وصل
+                                                </span>
+                                            @else
+                                                <span class="badge badge-secondary">
+                                                    <i class="fas fa-minus"></i>
+                                                    لم يصل بعد
+                                                </span>
+                                            @endif
+                                        </div>
                                     </div>
-                                </div>
 
-                                <!-- Reject Modal (hidden by default) -->
-                                <div class="reject-modal" id="rejectModal{{ $arrival->arrivalId }}" style="display: none;">
-                                    <div class="modal-content">
-                                        <h4>رفض الوصول</h4>
-                                        <form class="reject-form" data-arrival-id="{{ $arrival->arrivalId }}">
-                                            @csrf
-                                            <div class="form-group">
-                                                <label>تعليق (مطلوب - سيظهر للعميل):</label>
-                                                <textarea name="comment" rows="3" required placeholder="أضف تعليقاً يوضح سبب الرفض"></textarea>
-                                            </div>
-                                            <div class="form-actions">
-                                                <button type="submit" class="btn btn-danger">
-                                                    <i class="fas fa-times"></i> رفض
+                                    @if($stopPoint['hasArrived'])
+                                        <div class="arrival-details">
+                                            @if($stopPoint['showArrivedAt'])
+                                                <div class="detail-item">
+                                                    <i class="fas fa-check-circle"></i>
+                                                    <span>وصل في: {{ $stopPoint['arrival']['arrivedAt'] }}</span>
+                                                </div>
+                                            @endif
+
+                                            @if($stopPoint['showOnTime'])
+                                                <div class="detail-item">
+                                                    <i class="fas {{ $stopPoint['arrival']['onTime'] ? 'fa-check-circle text-success' : 'fa-exclamation-triangle text-warning' }}"></i>
+                                                    <span class="{{ $stopPoint['arrival']['onTime'] ? 'text-success' : 'text-warning' }}">{{ $stopPoint['arrival']['onTimeText'] }}</span>
+                                                </div>
+                                            @endif
+
+                                            @if($stopPoint['showAutoApprovedMessage'])
+                                                <div class="auto-approved-message">
+                                                    <i class="fas fa-check-circle"></i>
+                                                    <strong>تمت الموافقة التلقائية</strong>
+                                                    <p>تمت الموافقة تلقائياً على نقطة البداية</p>
+                                                </div>
+                                            @endif
+
+                                            @if($stopPoint['showDelay'])
+                                                <div class="notes-section" style="background: #fff7ed; border-right-color: var(--accent-color);">
+                                                    <i class="fas fa-exclamation-triangle"></i>
+                                                    <strong>سبب التأخير:</strong>
+                                                    <p>{{ $stopPoint['arrival']['delayReason'] }}</p>
+                                                    @if($stopPoint['arrival']['delayDuration'])
+                                                        <p style="margin-top: 8px; margin-bottom: 0;">
+                                                            <strong>مدة التأخير:</strong> {{ $stopPoint['arrival']['delayDuration'] }} دقيقة (تم إضافة هذا الوقت للنقاط اللاحقة)
+                                                        </p>
+                                                    @endif
+                                                </div>
+                                            @endif
+
+                                            @if($stopPoint['showAdminComment'])
+                                                <div class="notes-section">
+                                                    <i class="fas fa-sticky-note"></i>
+                                                    <strong>ملاحظات:</strong>
+                                                    <p>{{ $stopPoint['arrival']['adminComment'] }}</p>
+                                                </div>
+                                            @endif
+
+                                            @if($stopPoint['showApprovedAt'])
+                                                <div class="detail-item">
+                                                    <i class="fas fa-calendar-check"></i>
+                                                    <span>تاريخ الوصول: {{ $stopPoint['arrival']['approvedAt'] }}</span>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <div class="no-arrival-info">
+                                            <i class="fas fa-info-circle"></i>
+                                            <span>لم يصل السائق إلى هذه النقطة بعد</span>
+                                        </div>
+                                        <div class="arrival-actions">
+                                            <button class="btn btn-info btn-sm edit-btn" 
+                                                    data-stop-point-id="{{ $stopPoint['stopPointId'] }}"
+                                                    data-driver-parcel-id="{{ $driverParcel['parcelId'] }}"
+                                                    @if($stopPoint['calculatedExpectedTime'])
+                                                    data-expected-time="{{ str_replace(' ', 'T', $stopPoint['calculatedExpectedTime']) }}"
+                                                    @endif>
+                                                <i class="fas fa-edit"></i> تعديل
+                                            </button>
+                                            @if($stopPoint['shouldShowMarkArrivedButton'])
+                                                <button class="btn btn-success btn-sm mark-arrived-btn" 
+                                                        data-driver-parcel-id="{{ $driverParcel['parcelId'] }}"
+                                                        data-stop-point-id="{{ $stopPoint['stopPointId'] }}"
+                                                        data-stop-name="{{ $stopPoint['stopName'] }}">
+                                                    <i class="fas fa-check-circle"></i> وصل إلى النقطة
                                                 </button>
-                                                <button type="button" class="btn btn-secondary cancel-btn">
-                                                    إلغاء
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
@@ -161,275 +256,103 @@
             </div>
         @empty
             <div class="empty-state">
-                <i class="fas fa-check-circle"></i>
-                <h3>لا توجد طلبات موافقة معلقة</h3>
-                <p>جميع طلبات الموافقة تم التعامل معها</p>
+                <i class="fas fa-inbox"></i>
+                <h3>لا توجد إرساليات</h3>
+                <p>لا توجد إرساليات متاحة حالياً</p>
             </div>
         @endforelse
     </div>
 </div>
 
-<style>
-.trip-management-container {
-    padding: 20px;
-}
+<!-- Modals -->
+@foreach($driverParcels as $driverParcel)
+    @foreach($driverParcel['stopPoints'] as $stopPoint)
+        @if($stopPoint['showDelayModal'])
+            <!-- Delay Modal -->
+            <div class="modal" id="delayModal{{ $stopPoint['arrival']['arrivalId'] }}">
+                <div class="modal-overlay"></div>
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4>تسجيل التأخير</h4>
+                        <button class="modal-close" data-modal-id="delayModal{{ $stopPoint['arrival']['arrivalId'] }}">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <form class="delay-form" data-arrival-id="{{ $stopPoint['arrival']['arrivalId'] }}">
+                        @csrf
+                        <div class="form-group">
+                            <label>سبب التأخير (مطلوب):</label>
+                            <textarea name="delayReason" rows="3" required placeholder="أدخل سبب التأخير (سيظهر للعميل)">{{ $stopPoint['arrival']['delayReason'] ?? '' }}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>مدة التأخير (بالدقائق) (مطلوب):</label>
+                            <input type="number" name="delayDuration" min="1" required placeholder="مثال: 30" value="{{ $stopPoint['arrival']['delayDuration'] ?? '' }}" class="form-control">
+                            <small style="color: var(--gray-600); margin-top: 5px; display: block;">
+                                سيتم إضافة هذا الوقت تلقائياً لجميع النقاط اللاحقة في الرحلة
+                            </small>
+                        </div>
+                        <div class="form-group">
+                            <label>ملاحظات إضافية (اختياري:</label>
+                            <textarea name="comment" rows="2" placeholder="ملاحظات إضافية">{{ $stopPoint['arrival']['adminComment'] ?? '' }}</textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-check"></i> تسجيل التأخير
+                            </button>
+                            <button type="button" class="btn btn-secondary" data-modal-id="delayModal{{ $stopPoint['arrival']['arrivalId'] }}">
+                                إلغاء
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        @endif
+        
+        @if($stopPoint['showEditModal'])
+            <!-- Edit Modal -->
+            <div class="modal" id="{{ $stopPoint['modalId'] }}">
+                <div class="modal-overlay"></div>
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4>تعديل وقت الوصول والملاحظات</h4>
+                        <button class="modal-close" data-modal-id="{{ $stopPoint['modalId'] }}">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <form class="edit-form" 
+                          data-arrival-id="{{ $stopPoint['hasArrived'] && $stopPoint['arrival'] ? $stopPoint['arrival']['arrivalId'] : '' }}"
+                          data-driver-parcel-id="{{ $driverParcel['parcelId'] }}"
+                          data-stop-point-id="{{ $stopPoint['stopPointId'] }}">
+                        @csrf
+                        @method('PUT')
+                        <div class="form-group">
+                            <label>وقت الوصول المتوقع:</label>
+                            <input type="datetime-local" 
+                                   name="expectedArrivalTime" 
+                                   value="{{ $stopPoint['expectedTimeForModal'] }}"
+                                   class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>ملاحظات (ستظهر للعميل):</label>
+                            <textarea name="adminComment" rows="4" placeholder="أضف ملاحظات للعميل (اختياري)">{{ $stopPoint['arrival']['adminComment'] ?? '' }}</textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> حفظ
+                            </button>
+                            <button type="button" class="btn btn-secondary" data-modal-id="{{ $stopPoint['modalId'] }}">
+                                إلغاء
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        @endif
+    @endforeach
+@endforeach
 
-.page-header {
-    margin-bottom: 30px;
-}
-
-.trip-card {
-    background: white;
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.trip-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid #eee;
-}
-
-.trip-name {
-    margin: 0 0 10px 0;
-    color: #333;
-}
-
-.trip-meta {
-    display: flex;
-    gap: 20px;
-    color: #666;
-}
-
-.pending-arrivals-section {
-    margin-top: 20px;
-}
-
-.section-title {
-    margin-bottom: 15px;
-    color: #333;
-}
-
-.arrivals-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.arrival-card {
-    background: #f8f9fa;
-    border-radius: 8px;
-    padding: 15px;
-    border-right: 4px solid #ffc107;
-}
-
-.arrival-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 15px;
-}
-
-.arrival-info {
-    flex: 1;
-}
-
-.arrival-info strong {
-    display: block;
-    margin-bottom: 8px;
-    color: #333;
-}
-
-.arrival-time, .arrival-request-time {
-    display: inline-block;
-    margin-left: 15px;
-    color: #666;
-    font-size: 14px;
-}
-
-.arrival-actions {
-    display: flex;
-    gap: 10px;
-}
-
-.arrival-details {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 10px;
-    margin-top: 15px;
-}
-
-.detail-row {
-    display: flex;
-    justify-content: space-between;
-}
-
-.detail-label {
-    font-weight: 500;
-    color: #666;
-}
-
-.detail-value {
-    color: #333;
-}
-
-.approval-modal, .reject-modal {
-    margin-top: 15px;
-    padding: 15px;
-    background: white;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-}
-
-.modal-content h4 {
-    margin-top: 0;
-    margin-bottom: 15px;
-}
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 500;
-}
-
-.form-group textarea {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-.form-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-}
-
-.empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    background: white;
-    border-radius: 10px;
-}
-
-.empty-state i {
-    font-size: 64px;
-    color: #28a745;
-    margin-bottom: 20px;
-}
-
-.alert {
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-
-.alert-warning {
-    background: #fff3cd;
-    border: 1px solid #ffc107;
-    color: #856404;
-}
-</style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Approve button click
-    document.querySelectorAll('.approve-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const arrivalId = this.dataset.arrivalId;
-            const modal = document.getElementById('approvalModal' + arrivalId);
-            modal.style.display = modal.style.display === 'none' ? 'block' : 'none';
-        });
-    });
-
-    // Reject button click
-    document.querySelectorAll('.reject-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const arrivalId = this.dataset.arrivalId;
-            const modal = document.getElementById('rejectModal' + arrivalId);
-            modal.style.display = modal.style.display === 'none' ? 'block' : 'none';
-        });
-    });
-
-    // Cancel button
-    document.querySelectorAll('.cancel-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const modal = this.closest('.approval-modal, .reject-modal');
-            if (modal) {
-                modal.style.display = 'none';
-            }
-        });
-    });
-
-    // Approve form submit
-    document.querySelectorAll('.approval-form').forEach(form => {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const arrivalId = this.dataset.arrivalId;
-            const formData = new FormData(this);
-            
-            fetch(`/admin/trip-management/arrivals/${arrivalId}/approve`, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('تم الموافقة بنجاح');
-                    location.reload();
-                } else {
-                    alert('حدث خطأ: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('حدث خطأ أثناء المعالجة');
-            });
-        });
-    });
-
-    // Reject form submit
-    document.querySelectorAll('.reject-form').forEach(form => {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const arrivalId = this.dataset.arrivalId;
-            const formData = new FormData(this);
-            
-            fetch(`/admin/trip-management/arrivals/${arrivalId}/reject`, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('تم الرفض بنجاح');
-                    location.reload();
-                } else {
-                    alert('حدث خطأ: ' + data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('حدث خطأ أثناء المعالجة');
-            });
-        });
-    });
-});
-</script>
+@if(config('broadcasting.default') === 'pusher')
+    <meta name="pusher-key" content="{{ config('broadcasting.connections.pusher.key') }}">
+    <meta name="pusher-cluster" content="{{ config('broadcasting.connections.pusher.options.cluster') }}">
+@endif
 @endsection
-
